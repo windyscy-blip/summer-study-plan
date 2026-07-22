@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>暑假学习 · 每日打卡</title>
+<style>
+  :root {
+    --cn: #e74c3c; --en: #2980b9; --ma: #27ae60;
+    --bg: #f5f5f0; --card: #fff; --border: #e0e0da;
+    --text: #2c2c2c; --sub: #888; --radius: 10px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "PingFang SC","Microsoft YaHei","Hiragino Sans GB",sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6;
+    min-height: 100vh; padding: 16px;
+  }
+  .app { max-width: 800px; margin: 0 auto; }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white; padding: 20px 28px; border-radius: var(--radius);
+    margin-bottom: 16px; text-align: center;
+  }
+  .header h1 { font-size: 22px; letter-spacing: 1px; }
+  .header .date-label { font-size: 14px; opacity: 0.8; margin-top: 4px; }
+
+  /* Calendar */
+  .calendar-wrap {
+    background: var(--card); border-radius: var(--radius);
+    border: 1px solid var(--border); padding: 16px 20px; margin-bottom: 16px;
+  }
+  .cal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .cal-header .month-label { font-size: 16px; font-weight: 700; }
+  .cal-header button {
+    background: none; border: 1px solid var(--border); border-radius: 6px;
+    padding: 4px 12px; cursor: pointer; font-size: 16px; color: var(--text);
+  }
+  .cal-header button:hover { background: #f0f0ec; }
+  .cal-weekdays {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    text-align: center; font-size: 12px; color: var(--sub); margin-bottom: 6px;
+  }
+  .cal-days {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 4px; text-align: center;
+  }
+  .cal-day {
+    padding: 8px 4px; border-radius: 6px; cursor: pointer;
+    font-size: 14px; position: relative; transition: background .15s;
+  }
+  .cal-day:hover { background: #f0f0ec; }
+  .cal-day.other-month { color: #ccc; cursor: default; }
+  .cal-day.other-month:hover { background: transparent; }
+  .cal-day.today { border: 2px solid #667eea; font-weight: 700; }
+  .cal-day.selected { background: #667eea; color: white; }
+  .cal-day.selected.today { border-color: #4a5bc0; }
+  .cal-day .dot-row { display: flex; justify-content: center; gap: 2px; margin-top: 3px; }
+  .cal-day .dot {
+    width: 5px; height: 5px; border-radius: 50%; display: inline-block;
+  }
+  .dot.cn { background: var(--cn); } .dot.en { background: var(--en); } .dot.ma { background: var(--ma); }
+  .cal-day.course-period { background: #fef3e2; }
+  .cal-day.weekend { background: #f0f0ec; color: #aaa; }
+  .cal-legend {
+    display: flex; gap: 16px; margin-top: 10px; font-size: 12px; color: var(--sub);
+    flex-wrap: wrap;
+  }
+  .cal-legend span { display: flex; align-items: center; gap: 4px; }
+  .legend-dot {
+    width: 10px; height: 10px; border-radius: 3px; display: inline-block;
+  }
+  .legend-dot.course { background: #fef3e2; border: 1px solid #e67e22; }
+  .legend-dot.weekend-leg { background: #f0f0ec; border: 1px solid #ccc; }
+
+  /* Mode badge */
+  .mode-badge {
+    display: inline-block; padding: 3px 12px; border-radius: 12px;
+    font-size: 12px; font-weight: 600; color: white; margin-bottom: 12px;
+  }
+  .mode-badge.regular { background: #555; }
+  .mode-badge.course { background: #e67e22; }
+  .mode-badge.weekend { background: #95a5a6; }
+
+  /* Schedule */
+  .schedule { margin-bottom: 16px; }
+  .period-block {
+    background: var(--card); border-radius: var(--radius);
+    border: 1px solid var(--border); margin-bottom: 12px; overflow: hidden;
+  }
+  .period-title {
+    font-size: 15px; font-weight: 700; padding: 10px 18px; color: white;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .period-title.morning { background: #f39c12; }
+  .period-title.afternoon { background: #3498db; }
+  .period-title.evening { background: #7f8c8d; }
+
+  .task-list { list-style: none; }
+  .task-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px 18px;
+    border-bottom: 1px solid #f5f5f0; transition: background .15s;
+  }
+  .task-item:last-child { border-bottom: none; }
+  .task-item:hover { background: #fafaf7; }
+  .task-item.done .task-name { text-decoration: line-through; color: #aaa; }
+  .task-item.done .task-detail { color: #ccc; }
+  .task-item input[type="checkbox"] {
+    width: 20px; height: 20px; accent-color: #27ae60; cursor: pointer; flex-shrink: 0;
+  }
+  .task-info { flex: 1; min-width: 0; }
+  .task-name { font-weight: 600; font-size: 14px; }
+  .task-detail { font-size: 12px; color: var(--sub); margin-top: 1px; }
+  .task-badge {
+    display: inline-block; padding: 1px 8px; border-radius: 10px;
+    font-size: 11px; font-weight: 600; color: white; flex-shrink: 0;
+  }
+  .badge-cn { background: var(--cn); }
+  .badge-en { background: var(--en); }
+  .badge-ma { background: var(--ma); }
+
+  /* Progress */
+  .progress-bar {
+    background: var(--card); border-radius: var(--radius);
+    border: 1px solid var(--border); padding: 14px 18px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .progress-fill {
+    flex: 1; height: 8px; background: #e8e8e4; border-radius: 4px; overflow: hidden;
+  }
+  .progress-fill-inner {
+    height: 100%; background: var(--ma); border-radius: 4px; transition: width .3s;
+  }
+  .progress-text { font-size: 13px; color: var(--sub); white-space: nowrap; }
+
+  /* Print */
+  @media print {
+    body { background: white; padding: 0; }
+    .calendar-wrap { display: none; }
+    .header { background: #667eea !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .period-title.morning { background: #f39c12 !important; -webkit-print-color-adjust: exact; }
+    .period-title.afternoon { background: #3498db !important; -webkit-print-color-adjust: exact; }
+    .period-title.evening { background: #7f8c8d !important; -webkit-print-color-adjust: exact; }
+    .task-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .badge-cn { background: var(--cn) !important; }
+    .badge-en { background: var(--en) !important; }
+    .badge-ma { background: var(--ma) !important; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>📚 暑假学习 · 每日打卡</h1>
+    <div class="date-label" id="headerDate">—</div>
+  </div>
+
+  <!-- Calendar -->
+  <div class="calendar-wrap">
+    <div class="cal-header">
+      <button onclick="changeMonth(-1)">◀</button>
+      <span class="month-label" id="monthLabel"></span>
+      <button onclick="changeMonth(1)">▶</button>
+    </div>
+    <div class="cal-weekdays">
+      <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+    </div>
+    <div class="cal-days" id="calDays"></div>
+    <div class="cal-legend">
+      <span><span class="legend-dot course"></span> 课程期间</span>
+      <span><span class="legend-dot weekend-leg"></span> 周末减量</span>
+      <span><span style="color:#667eea;font-weight:700;">●</span> 已选日期</span>
+    </div>
+  </div>
+
+  <!-- Schedule -->
+  <div class="schedule" id="schedule"></div>
+</div>
+
+<script>
+// ============ DATA ============
+const COURSE_START = new Date(2026, 7, 3);  // Aug 3
+const COURSE_END   = new Date(2026, 7, 16); // Aug 16
+const PLAN_END     = new Date(2026, 7, 31); // Aug 31
+
+// Regular plan tasks
+const REGULAR_TASKS = {
+  morning: [
+    { id: 'cn-read',   name: '语文晨读（337模式）', detail: '大声朗读，15-20分钟。3类内容各读3天，7天一循环', subject: 'cn' },
+    { id: 'en-read',   name: '英语晨读', detail: '学而思读本，大声朗读，10-15分钟', subject: 'en' },
+    { id: 'cn-happy',  name: '快乐读书吧', detail: '书目：《青蛙洗衣店》，阅读 15分钟，可读给外婆爷爷听', subject: 'cn' },
+    { id: 'cn-cibiao', name: '复习2年级生词表 + 词语表', detail: '每天1课，约10-15分钟', subject: 'cn' },
+    { id: 'cn-yiben',  name: '《一本》三年级生词', detail: '每天1个单元，约10-15分钟', subject: 'cn' },
+  ],
+  afternoon: [
+    { id: 'cn-53',     name: '53天天练', detail: '一天1课，写完并订正', subject: 'cn' },
+    { id: 'ma-xueba',  name: '学霸', detail: '每天1课，20-40分钟，写完并订正', subject: 'ma' },
+    { id: 'en-pic',    name: '乐读绘本', detail: '每天1课', subject: 'en' },
+    { id: 'en-word',   name: '单词抄写 + 默写', detail: '1-2年级单词，每天1个Unit，约10-15分钟', subject: 'en' },
+    { id: 'ma-shugan', name: '数感训练', detail: '每天2页，约20分钟，做完并订正', subject: 'ma' },
+  ],
+  evening: [
+    { id: 'en-toon',   name: '字母积木动画片', detail: '每天3集，约10分钟', subject: 'en' },
+    { id: 'en-market', name: '乐读单词小超市', detail: '每天1个Day', subject: 'en' },
+    { id: 'en-copy',   name: '课文抄写', detail: '二下课文，每周2个Unit（周二/周四），15分钟', subject: 'en', tueThu: true },
+  ]
+};
+
+// Course period tasks (Aug 3-16)
+const COURSE_TASKS = {
+  morning: [
+    { id: 'cn-read-c',   name: '语文晨读（337模式）', detail: '大声朗读，20分钟', subject: 'cn' },
+    { id: 'en-read-c',   name: '英语晨读', detail: '学而思读本，大声朗读，10分钟', subject: 'en' },
+    { id: 'en-class',    name: '🏫 英语暑期课', detail: '2小时', subject: 'en' },
+  ],
+  afternoon: [
+    { id: 'cn-happy-c',  name: '快乐读书吧', detail: '书目：《青蛙洗衣店》，阅读 15分钟', subject: 'cn' },
+    { id: 'ma-class',    name: '🏫 数学暑期课', detail: '2小时', subject: 'ma' },
+    { id: 'ma-hw',       name: '数学课后作业', detail: '约20-30分钟，当天完成', subject: 'ma' },
+    { id: 'ma-shugan-c', name: '数感训练', detail: '每天1页，约10分钟，做完并订正', subject: 'ma' },
+  ],
+  evening: [
+    { id: 'en-hw',       name: '英语课后作业', detail: '约40分钟，当天完成', subject: 'en' },
+    { id: 'en-toon-c',   name: '字母积木动画片', detail: '每天3集，约10分钟', subject: 'en' },
+    { id: 'en-market-c', name: '乐读单词小超市', detail: '每天1个Day', subject: 'en' },
+  ]
+};
+
+// Weekend reduced tasks
+const WEEKEND_SAT = {
+  morning: [
+    { id: 'cn-read-w',  name: '语文晨读（337模式）', detail: '大声朗读，15-20分钟', subject: 'cn' },
+    { id: 'en-read-w',  name: '英语晨读', detail: '学而思读本，大声朗读，10-15分钟', subject: 'en' },
+    { id: 'cn-happy-w', name: '快乐读书吧', detail: '书目：《青蛙洗衣店》，阅读 15分钟', subject: 'cn' },
+    { id: 'cn-cibiao-w', name: '复习2年级生词表 + 词语表', detail: '每天1课，约10-15分钟', subject: 'cn' },
+  ],
+  afternoon: [
+    { id: 'ma-shugan-w', name: '数感训练', detail: '每天1页，约10分钟，做完并订正', subject: 'ma' },
+    { id: 'en-word-w',   name: '单词抄写 + 默写', detail: '1-2年级单词，每天1个Unit，约10-15分钟', subject: 'en' },
+  ],
+  evening: [
+    { id: 'en-toon-w',  name: '字母积木动画片', detail: '每天3集，约10分钟', subject: 'en' },
+    { id: 'en-market-w', name: '乐读单词小超市', detail: '每天1个Day', subject: 'en' },
+  ]
+};
+
+const WEEKEND_SUN = {
+  morning: [
+    { id: 'cn-read-w2', name: '语文晨读（337模式）', detail: '大声朗读，15-20分钟', subject: 'cn' },
+    { id: 'cn-happy-w2', name: '快乐读书吧', detail: '书目：《青蛙洗衣店》，阅读 15分钟', subject: 'cn' },
+  ],
+  afternoon: [
+    { id: 'en-word-w2',  name: '单词抄写 + 默写', detail: '1-2年级单词，每天1个Unit，约10-15分钟', subject: 'en' },
+  ],
+  evening: [
+    { id: 'en-toon-w2',  name: '字母积木动画片', detail: '每天3集，约10分钟', subject: 'en' },
+    { id: 'en-market-w2', name: '乐读单词小超市', detail: '每天1个Day', subject: 'en' },
+  ]
+};
+
+// ============ STATE ============
+let selectedDate = new Date(); // today
+let calYear, calMonth;
+
+// ============ HELPERS ============
+function dateKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+function isWeekend(d) { const day = d.getDay(); return day === 0 || day === 6; }
+
+function isCoursePeriod(d) { return d >= COURSE_START && d <= COURSE_END; }
+
+function isInPlan(d) { return d.getMonth() >= 6 && d.getMonth() <= 7 && d.getFullYear() === 2026; }
+
+function sameDay(a, b) { return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+
+function getTaskList(d) {
+  if (isCoursePeriod(d)) return { tasks: COURSE_TASKS, mode: 'course' };
+  if (isWeekend(d)) {
+    if (d.getDay() === 6) return { tasks: WEEKEND_SAT, mode: 'weekend' };
+    return { tasks: WEEKEND_SUN, mode: 'weekend' };
+  }
+  return { tasks: REGULAR_TASKS, mode: 'regular' };
+}
+
+// ============ STORAGE ============
+function loadChecks() {
+  try { return JSON.parse(localStorage.getItem('summer_checks') || '{}'); }
+  catch(e) { return {}; }
+}
+function saveChecks(checks) {
+  localStorage.setItem('summer_checks', JSON.stringify(checks));
+}
+
+// ============ RENDER CALENDAR ============
+function renderCalendar() {
+  document.getElementById('monthLabel').textContent = `${calYear}年${calMonth+1}月`;
+
+  const firstDay = new Date(calYear, calMonth, 1);
+  const lastDay = new Date(calYear, calMonth+1, 0);
+  const startOffset = firstDay.getDay();
+  const totalDays = lastDay.getDate();
+  const prevLast = new Date(calYear, calMonth, 0).getDate();
+
+  const today = new Date();
+  const container = document.getElementById('calDays');
+  let html = '';
+
+  // Prev month fill
+  for (let i = startOffset-1; i >= 0; i--) {
+    html += `<div class="cal-day other-month">${prevLast - i}</div>`;
+  }
+
+  // Current month
+  for (let d = 1; d <= totalDays; d++) {
+    const date = new Date(calYear, calMonth, d);
+    let cls = 'cal-day';
+    if (sameDay(date, today)) cls += ' today';
+    if (sameDay(date, selectedDate)) cls += ' selected';
+    if (isCoursePeriod(date)) cls += ' course-period';
+    else if (isWeekend(date)) cls += ' weekend';
+
+    // Dots for plan overview
+    let dots = '';
+    if (isInPlan(date) && !isWeekend(date) && !isCoursePeriod(date)) {
+      dots = '<div class="dot-row"><span class="dot cn"></span><span class="dot cn"></span><span class="dot en"></span><span class="dot ma"></span></div>';
+    } else if (isCoursePeriod(date)) {
+      dots = '<div class="dot-row"><span class="dot en"></span><span class="dot ma"></span></div>';
+    } else if (isWeekend(date) && isInPlan(date)) {
+      dots = '<div class="dot-row"><span class="dot cn"></span><span class="dot en"></span></div>';
+    }
+
+    html += `<div class="${cls}" onclick="selectDate(${calYear},${calMonth},${d})">${d}${dots}</div>`;
+  }
+
+  // Next month fill
+  const remaining = 7 - ((startOffset + totalDays) % 7);
+  if (remaining < 7) {
+    for (let i = 1; i <= remaining; i++) {
+      html += `<div class="cal-day other-month">${i}</div>`;
+    }
+  }
+
+  container.innerHTML = html;
+}
+
+function changeMonth(delta) {
+  calMonth += delta;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function selectDate(y, m, d) {
+  selectedDate = new Date(y, m, d);
+  renderCalendar();
+  renderSchedule();
+}
+
+// ============ RENDER SCHEDULE ============
+function renderSchedule() {
+  const d = selectedDate;
+  const key = dateKey(d);
+  const { tasks, mode } = getTaskList(d);
+  const checks = loadChecks();
+  const dayChecks = checks[key] || {};
+
+  // Header date
+  const weekNames = ['日','一','二','三','四','五','六'];
+  document.getElementById('headerDate').textContent =
+    `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 星期${weekNames[d.getDay()]}`;
+
+  // Mode badge
+  let badgeHtml = '';
+  if (mode === 'course') badgeHtml = '<span class="mode-badge course">📅 课程期间 · 8月3日-16日</span>';
+  else if (mode === 'weekend') badgeHtml = '<span class="mode-badge weekend">🌿 周末减量日</span>';
+  else badgeHtml = '<span class="mode-badge regular">📖 常规计划</span>';
+
+  // Count stats
+  let totalTasks = 0, doneTasks = 0;
+  const periods = ['morning', 'afternoon', 'evening'];
+  const periodLabels = { morning: '🌅 上午', afternoon: '🌿 下午', evening: '🌙 晚上' };
+  const periodClasses = { morning: 'morning', afternoon: 'afternoon', evening: 'evening' };
+
+  let scheduleHtml = badgeHtml;
+
+  // Progress bar
+  periods.forEach(p => {
+    tasks[p].forEach(t => {
+      if (t.tueThu && (d.getDay() !== 2 && d.getDay() !== 4)) return;
+      totalTasks++;
+      if (dayChecks[t.id]) doneTasks++;
+    });
+  });
+
+  const pct = totalTasks > 0 ? Math.round(doneTasks/totalTasks*100) : 0;
+  scheduleHtml += `
+    <div class="progress-bar">
+      <span style="font-size:13px;">今日进度</span>
+      <div class="progress-fill"><div class="progress-fill-inner" style="width:${pct}%"></div></div>
+      <span class="progress-text">${doneTasks}/${totalTasks}</span>
+    </div>`;
+
+  // Period blocks
+  periods.forEach(p => {
+    const periodTasks = tasks[p].filter(t => {
+      if (t.tueThu && (d.getDay() !== 2 && d.getDay() !== 4)) return false;
+      return true;
+    });
+    if (periodTasks.length === 0) return;
+
+    scheduleHtml += `<div class="period-block">
+      <div class="period-title ${periodClasses[p]}">${periodLabels[p]}</div>
+      <ul class="task-list">`;
+
+    periodTasks.forEach(t => {
+      const checked = dayChecks[t.id] ? 'checked' : '';
+      const doneClass = dayChecks[t.id] ? 'done' : '';
+      const subCls = 'badge-' + t.subject;
+      const subLabel = { cn:'语文', en:'英语', ma:'数学' }[t.subject] || '';
+      scheduleHtml += `
+        <li class="task-item ${doneClass}" id="item-${t.id}">
+          <input type="checkbox" ${checked} onchange="toggleTask('${key}','${t.id}',this)">
+          <div class="task-info">
+            <div class="task-name">${t.name}</div>
+            <div class="task-detail">${t.detail}</div>
+          </div>
+          <span class="task-badge ${subCls}">${subLabel}</span>
+        </li>`;
+    });
+
+    scheduleHtml += '</ul></div>';
+  });
+
+  document.getElementById('schedule').innerHTML = scheduleHtml;
+}
+
+function toggleTask(dateKey, taskId, checkbox) {
+  const checks = loadChecks();
+  if (!checks[dateKey]) checks[dateKey] = {};
+  checks[dateKey][taskId] = checkbox.checked;
+  saveChecks(checks);
+
+  // Update visual
+  const item = document.getElementById('item-' + taskId);
+  if (item) {
+    if (checkbox.checked) item.classList.add('done');
+    else item.classList.remove('done');
+  }
+
+  // Update progress bar
+  renderSchedule();
+}
+
+// ============ INIT ============
+calYear = selectedDate.getFullYear();
+calMonth = selectedDate.getMonth();
+renderCalendar();
+renderSchedule();
+</script>
+</body>
+</html>
