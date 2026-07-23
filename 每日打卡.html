@@ -3,464 +3,3362 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>暑假学习 · 每日打卡</title>
+<title>暑假学习 · 彩虹打卡乐园</title>
 <style>
   :root {
-    --cn: #e74c3c; --en: #2980b9; --ma: #27ae60;
-    --bg: #f5f5f0; --card: #fff; --border: #e0e0da;
-    --text: #2c2c2c; --sub: #888; --radius: 10px;
+    --bg: #fff7fd;
+    --card: rgba(255,255,255,.92);
+    --border: rgba(170, 145, 243, .18);
+    --text: #4b3f66;
+    --sub: #85779f;
+    --pink: #ff7eb6;
+    --purple: #9c7cff;
+    --blue: #7ccfff;
+    --mint: #7fe0ba;
+    --gold: #f6c54a;
+    --shadow: 0 16px 36px rgba(136, 98, 210, .12);
+    --r: #5fa8ff;
+    --sr: #9b63ff;
+    --ssr: #f3be44;
+    --cn: #ff6f8d;
+    --en: #5d8dff;
+    --ma: #41c59b;
   }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
   body {
-    font-family: "PingFang SC","Microsoft YaHei","Hiragino Sans GB",sans-serif;
-    background: var(--bg); color: var(--text); line-height: 1.6;
-    min-height: 100vh; padding: 16px;
+    font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+    color: var(--text);
+    background:
+      radial-gradient(circle at 12% 8%, rgba(255, 203, 232, .9) 0, rgba(255, 203, 232, .9) 8%, transparent 9%),
+      radial-gradient(circle at 92% 12%, rgba(205, 240, 255, .92) 0, rgba(205, 240, 255, .92) 10%, transparent 11%),
+      linear-gradient(180deg, #fffaff 0%, #fff7fd 50%, #fbf9ff 100%);
+    min-height: 100vh;
+    padding: 16px;
   }
-  .app { max-width: 800px; margin: 0 auto; }
 
-  /* Header */
-  .header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white; padding: 20px 28px; border-radius: var(--radius);
-    margin-bottom: 16px; text-align: center;
+  .app {
+    max-width: 1180px;
+    margin: 0 auto;
   }
-  .header h1 { font-size: 22px; letter-spacing: 1px; }
-  .header .date-label { font-size: 14px; opacity: 0.8; margin-top: 4px; }
 
-  /* Calendar */
-  .calendar-wrap {
-    background: var(--card); border-radius: var(--radius);
-    border: 1px solid var(--border); padding: 16px 20px; margin-bottom: 16px;
+  .topbar {
+    background: linear-gradient(135deg, #f4a9d6 0%, #b89fff 45%, #84d6ff 100%);
+    border-radius: 20px;
+    box-shadow: 0 18px 38px rgba(139, 94, 209, .16);
+    padding: 9px 14px;
+    display: grid;
+    grid-template-columns: 1fr 74px;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+    overflow: hidden;
+    position: relative;
   }
-  .cal-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 12px;
+
+  .topbar::before,
+  .topbar::after {
+    content: "";
+    position: absolute;
+    border-radius: 999px;
+    background: rgba(255,255,255,.16);
   }
-  .cal-header .month-label { font-size: 16px; font-weight: 700; }
-  .cal-header button {
-    background: none; border: 1px solid var(--border); border-radius: 6px;
-    padding: 4px 12px; cursor: pointer; font-size: 16px; color: var(--text);
+
+  .topbar::before {
+    width: 116px;
+    height: 116px;
+    right: 28px;
+    top: -54px;
   }
-  .cal-header button:hover { background: #f0f0ec; }
-  .cal-weekdays {
-    display: grid; grid-template-columns: repeat(7, 1fr);
-    text-align: center; font-size: 12px; color: var(--sub); margin-bottom: 6px;
+
+  .topbar::after {
+    width: 84px;
+    height: 84px;
+    right: -12px;
+    bottom: -28px;
   }
-  .cal-days {
-    display: grid; grid-template-columns: repeat(7, 1fr);
-    gap: 4px; text-align: center;
+
+  .topbar-copy,
+  .topbar-art {
+    position: relative;
+    z-index: 1;
   }
-  .cal-day {
-    padding: 8px 4px; border-radius: 6px; cursor: pointer;
-    font-size: 14px; position: relative; transition: background .15s;
+
+  .mini-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.18);
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    margin-bottom: 4px;
   }
-  .cal-day:hover { background: #f0f0ec; }
-  .cal-day.other-month { color: #ccc; cursor: default; }
-  .cal-day.other-month:hover { background: transparent; }
-  .cal-day.today { border: 2px solid #667eea; font-weight: 700; }
-  .cal-day.selected { background: #667eea; color: white; }
-  .cal-day.selected.today { border-color: #4a5bc0; }
-  .cal-day .dot-row { display: flex; justify-content: center; gap: 2px; margin-top: 3px; }
-  .cal-day .dot {
-    width: 5px; height: 5px; border-radius: 50%; display: inline-block;
+
+  .topbar h1 {
+    color: white;
+    font-size: 20px;
+    line-height: 1.12;
+    letter-spacing: .6px;
   }
-  .dot.cn { background: var(--cn); } .dot.en { background: var(--en); } .dot.ma { background: var(--ma); }
-  .cal-day.course-period { background: #fef3e2; }
-  .cal-day.weekend { background: #f0f0ec; color: #aaa; }
-  .cal-legend {
-    display: flex; gap: 16px; margin-top: 10px; font-size: 12px; color: var(--sub);
+
+  .topbar-art {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .pony-mini {
+    width: 100%;
+    max-width: 66px;
+    filter: drop-shadow(0 8px 14px rgba(99, 71, 162, .16));
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 10px 12px;
+    min-height: 66px;
+    display: grid;
+    align-content: center;
+    gap: 3px;
+    cursor: default;
+  }
+
+  .stat-card.clickable {
+    cursor: pointer;
+    transition: transform .18s ease, box-shadow .18s ease;
+  }
+
+  .stat-card.clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 28px rgba(136, 98, 210, .16);
+  }
+
+  .stat-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .stat-label {
+    color: var(--sub);
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .stat-icon {
+    font-size: 15px;
+  }
+
+  .stat-main {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+    line-height: 1;
+    font-weight: 900;
+  }
+
+  .stat-unit {
+    color: var(--sub);
+    font-size: 10px;
+    font-weight: 800;
+  }
+
+  .stat-desc {
+    color: var(--sub);
+    font-size: 10px;
+    line-height: 1.45;
+  }
+
+  .dashboard-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(290px, .75fr);
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .panel-head {
+    padding: 14px 16px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .panel-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 17px;
+    font-weight: 900;
+  }
+
+  .panel-title .icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #ffe3f1, #efe9ff);
+  }
+
+  .panel-sub {
+    color: var(--sub);
+    font-size: 12px;
+    line-height: 1.7;
+    padding: 6px 16px 0;
+  }
+
+  .panel-body {
+    padding: 14px 16px 16px;
+  }
+
+  .week-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .week-range {
+    font-size: 15px;
+    font-weight: 900;
+  }
+
+  .week-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .ghost-btn,
+  .nav-btn,
+  .modal-close,
+  .tab-btn,
+  .library-link,
+  .reward-action,
+  .card-action {
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .nav-btn,
+  .ghost-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f9efff, #edf8ff);
+    color: var(--text);
+    font-size: 18px;
+    box-shadow: inset 0 0 0 1px rgba(170,145,243,.16);
+  }
+
+  .ghost-btn { width: auto; padding: 0 12px; font-size: 12px; font-weight: 800; }
+
+  .week-strip {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .day-pill {
+    border-radius: 14px;
+    padding: 7px 4px 6px;
+    text-align: center;
+    background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(249, 246, 255, .92));
+    box-shadow: inset 0 0 0 1px rgba(170,145,243,.12);
+    cursor: pointer;
+    transition: transform .18s ease, box-shadow .18s ease;
+    min-height: 70px;
+    display: grid;
+    align-content: space-between;
+    gap: 2px;
+  }
+
+  .day-pill:hover {
+    transform: translateY(-2px);
+    box-shadow: inset 0 0 0 1px rgba(170,145,243,.2), 0 10px 18px rgba(136, 98, 210, .10);
+  }
+
+  .day-pill.selected {
+    background: linear-gradient(135deg, #ff8fc4, #a483ff 58%, #80d2ff 100%);
+    color: white;
+    box-shadow: 0 12px 24px rgba(146, 101, 226, .18);
+  }
+
+  .day-pill.today {
+    box-shadow: inset 0 0 0 2px rgba(255,126,182,.4);
+  }
+
+  .day-pill.selected.today {
+    box-shadow: 0 12px 24px rgba(146, 101, 226, .18), inset 0 0 0 2px rgba(255,255,255,.4);
+  }
+
+  .day-pill.outside {
+    opacity: .46;
+  }
+
+  .day-name {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--sub);
+  }
+
+  .day-pill.selected .day-name,
+  .day-pill.selected .day-note,
+  .day-pill.selected .day-progress,
+  .day-pill.selected .day-date { color: white; }
+
+  .day-date {
+    font-size: 16px;
+    line-height: 1;
+    font-weight: 900;
+  }
+
+  .day-note {
+    font-size: 8px;
+    min-height: 10px;
+    color: var(--sub);
+    font-weight: 800;
+  }
+
+  .day-progress {
+    font-size: 9px;
+    line-height: 1.2;
+    color: var(--sub);
+    font-weight: 700;
+  }
+
+  .day-badge-row {
+    display: flex;
+    justify-content: center;
+    gap: 3px;
     flex-wrap: wrap;
   }
-  .cal-legend span { display: flex; align-items: center; gap: 4px; }
-  .legend-dot {
-    width: 10px; height: 10px; border-radius: 3px; display: inline-block;
-  }
-  .legend-dot.course { background: #fef3e2; border: 1px solid #e67e22; }
-  .legend-dot.weekend-leg { background: #f0f0ec; border: 1px solid #ccc; }
 
-  /* Mode badge */
-  .mode-badge {
-    display: inline-block; padding: 3px 12px; border-radius: 12px;
-    font-size: 12px; font-weight: 600; color: white; margin-bottom: 12px;
+  .tiny-badge {
+    padding: 1px 5px;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 900;
+    line-height: 1.35;
   }
-  .mode-badge.regular { background: #555; }
-  .mode-badge.course { background: #e67e22; }
-  .mode-badge.weekend { background: #95a5a6; }
 
-  /* Schedule */
-  .schedule { margin-bottom: 16px; }
-  .period-block {
-    background: var(--card); border-radius: var(--radius);
-    border: 1px solid var(--border); margin-bottom: 12px; overflow: hidden;
-  }
-  .period-title {
-    font-size: 15px; font-weight: 700; padding: 10px 18px; color: white;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .period-title.morning { background: #f39c12; }
-  .period-title.afternoon { background: #3498db; }
-  .period-title.evening { background: #7f8c8d; }
+  .tiny-badge.full { background: rgba(246,197,74,.18); color: #b07a00; }
+  .tiny-badge.card-r { background: rgba(95,168,255,.16); color: #2f73d0; }
+  .tiny-badge.card-sr { background: rgba(155,99,255,.16); color: #7a40dc; }
+  .tiny-badge.card-ssr { background: rgba(243,190,68,.2); color: #a66f00; }
 
-  .task-list { list-style: none; }
-  .task-item {
-    display: flex; align-items: center; gap: 12px; padding: 12px 18px;
-    border-bottom: 1px solid #f5f5f0; transition: background .15s;
+  .progress-card {
+    height: 100%;
+    display: grid;
+    align-content: start;
+    gap: 12px;
   }
-  .task-item:last-child { border-bottom: none; }
-  .task-item:hover { background: #fafaf7; }
-  .task-item.done .task-name { text-decoration: line-through; color: #aaa; }
-  .task-item.done .task-detail { color: #ccc; }
-  .task-item input[type="checkbox"] {
-    width: 20px; height: 20px; accent-color: #27ae60; cursor: pointer; flex-shrink: 0;
-  }
-  .task-info { flex: 1; min-width: 0; }
-  .task-name { font-weight: 600; font-size: 14px; }
-  .task-detail { font-size: 12px; color: var(--sub); margin-top: 1px; }
-  .task-badge {
-    display: inline-block; padding: 1px 8px; border-radius: 10px;
-    font-size: 11px; font-weight: 600; color: white; flex-shrink: 0;
-  }
-  .badge-cn { background: var(--cn); }
-  .badge-en { background: var(--en); }
-  .badge-ma { background: var(--ma); }
 
-  /* Progress */
-  .progress-bar {
-    background: var(--card); border-radius: var(--radius);
-    border: 1px solid var(--border); padding: 14px 18px; margin-bottom: 16px;
-    display: flex; align-items: center; gap: 12px;
+  .selected-date {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #fff, #faf7ff);
+    box-shadow: inset 0 0 0 1px rgba(170,145,243,.14);
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--sub);
   }
+
+  .mode-chip {
+    padding: 8px 12px;
+    border-radius: 999px;
+    color: white;
+    font-size: 12px;
+    font-weight: 900;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mode-chip.regular { background: linear-gradient(135deg, #ff8fc4, #a483ff); }
+  .mode-chip.course { background: linear-gradient(135deg, #ffb35c, #ff8d6b); }
+  .mode-chip.weekend { background: linear-gradient(135deg, #9a8cff, #6dbfff); }
+  .mode-chip.off { background: linear-gradient(135deg, #bfb7d6, #aaa2c6); }
+
+  .progress-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .progress-main {
+    padding: 10px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #fff, #fbf8ff);
+    box-shadow: inset 0 0 0 1px rgba(170,145,243,.12);
+  }
+
+  .progress-text {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .progress-text strong {
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  .progress-text span {
+    color: var(--sub);
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .progress-track {
+    height: 12px;
+    background: linear-gradient(180deg, #efe8ff, #f8f4ff);
+    border-radius: 999px;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px rgba(170,145,243,.12);
+  }
+
   .progress-fill {
-    flex: 1; height: 8px; background: #e8e8e4; border-radius: 4px; overflow: hidden;
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, #ff8ebf 0%, #a483ff 55%, #79d0ff 100%);
+    border-radius: inherit;
+    position: relative;
+    transition: width .26s ease;
   }
-  .progress-fill-inner {
-    height: 100%; background: var(--ma); border-radius: 4px; transition: width .3s;
-  }
-  .progress-text { font-size: 13px; color: var(--sub); white-space: nowrap; }
 
-  /* Print */
-  @media print {
-    body { background: white; padding: 0; }
-    .calendar-wrap { display: none; }
-    .header { background: #667eea !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .period-title.morning { background: #f39c12 !important; -webkit-print-color-adjust: exact; }
-    .period-title.afternoon { background: #3498db !important; -webkit-print-color-adjust: exact; }
-    .period-title.evening { background: #7f8c8d !important; -webkit-print-color-adjust: exact; }
-    .task-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .badge-cn { background: var(--cn) !important; }
-    .badge-en { background: var(--en) !important; }
-    .badge-ma { background: var(--ma) !important; }
+  .progress-fill::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(255,255,255,0) 18%, rgba(255,255,255,.32) 48%, rgba(255,255,255,0) 78%);
+    animation: shimmer 2.4s linear infinite;
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-110%); }
+    100% { transform: translateX(120%); }
+  }
+
+  .progress-meta {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .progress-meta-item {
+    padding: 8px 9px;
+    border-radius: 10px;
+    background: white;
+    box-shadow: inset 0 0 0 1px rgba(170,145,243,.12);
+  }
+
+  .progress-meta-item .k {
+    color: var(--sub);
+    font-size: 10px;
+    font-weight: 800;
+    margin-bottom: 2px;
+  }
+
+  .progress-meta-item .v {
+    font-size: 12px;
+    font-weight: 900;
+    line-height: 1.45;
+  }
+
+  .boost-title {
+    font-size: 12px;
+    font-weight: 900;
+  }
+
+  .task-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .task-head {
+    padding: 14px 16px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .task-head .title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: 900;
+  }
+
+  .task-head .title .icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ffe3f1, #efe9ff);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .task-head .sub {
+    color: var(--sub);
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .task-body {
+    padding: 14px 16px 16px;
+  }
+
+  .period-block + .period-block { margin-top: 12px; }
+
+  .period-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 14px;
+    border-radius: 16px 16px 0 0;
+    color: white;
+    font-weight: 900;
+  }
+
+  .period-head.morning { background: linear-gradient(135deg, #ffb465, #ff8fbf); }
+  .period-head.afternoon { background: linear-gradient(135deg, #82c8ff, #7d9fff); }
+  .period-head.evening { background: linear-gradient(135deg, #9b88ff, #6abfff); }
+
+  .period-count {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.18);
+    font-size: 12px;
+    font-weight: 900;
+  }
+
+  .task-list {
+    list-style: none;
+    border-radius: 0 0 16px 16px;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px rgba(170,145,243,.12);
+  }
+
+  .task-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 14px;
+    background: rgba(255,255,255,.95);
+    border-bottom: 1px solid rgba(170,145,243,.10);
+  }
+
+  .task-item:last-child { border-bottom: none; }
+
+  .task-item.done {
+    background: linear-gradient(90deg, rgba(242,255,248,.86), rgba(251,248,255,.86));
+  }
+
+  .task-check {
+    width: 22px;
+    height: 22px;
+    accent-color: var(--pink);
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  .task-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .task-name {
+    font-size: 15px;
+    font-weight: 900;
+    line-height: 1.4;
+  }
+
+  .task-detail {
+    margin-top: 4px;
+    color: var(--sub);
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  .task-item.done .task-name {
+    color: #9a8eb5;
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+  }
+
+  .task-badge {
+    flex-shrink: 0;
+    padding: 5px 10px;
+    border-radius: 999px;
+    color: white;
+    font-size: 11px;
+    font-weight: 900;
+  }
+
+  .badge-cn { background: linear-gradient(135deg, #ff89a2, #ff6f8d); }
+  .badge-en { background: linear-gradient(135deg, #7fa8ff, #5d8dff); }
+  .badge-ma { background: linear-gradient(135deg, #65ddb5, #41c59b); }
+
+  .off-day {
+    padding: 22px;
+    border-radius: 16px;
+    text-align: center;
+    color: var(--sub);
+    font-size: 13px;
+    line-height: 1.9;
+    background: linear-gradient(180deg, #fff, #faf7ff);
+    box-shadow: inset 0 0 0 1px rgba(170,145,243,.12);
+  }
+
+  .modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(70, 46, 110, .34);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    z-index: 40;
+    backdrop-filter: blur(8px);
+  }
+
+  .modal.show { display: flex; }
+
+  .modal-card {
+    width: min(580px, 100%);
+    background: rgba(255,255,255,.98);
+    border: 1px solid rgba(170,145,243,.16);
+    border-radius: 24px;
+    box-shadow: 0 26px 60px rgba(72, 44, 124, .22);
+    overflow: hidden;
+  }
+
+  .modal-head {
+    padding: 16px 18px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .modal-title {
+    font-size: 20px;
+    font-weight: 900;
+  }
+
+  .modal-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f8efff, #eef8ff);
+    color: var(--text);
+    font-size: 20px;
+  }
+
+  .modal-body {
+    padding: 14px 18px 18px;
+  }
+
+  .reward-stage {
+    position: relative;
+    border-radius: 24px;
+    padding: 18px 16px 16px;
+    margin-bottom: 12px;
+    background:
+      radial-gradient(circle at 20% 18%, rgba(255,255,255,.62), transparent 28%),
+      radial-gradient(circle at 80% 14%, rgba(255,255,255,.42), transparent 24%),
+      linear-gradient(135deg, #ffd8ec 0%, #efe4ff 50%, #dff5ff 100%);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.42), 0 16px 32px rgba(143, 101, 224, .14);
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .reward-stage::before,
+  .reward-stage::after {
+    content: "";
+    position: absolute;
+    border-radius: 999px;
+    background: rgba(255,255,255,.24);
+    filter: blur(2px);
+  }
+
+  .reward-stage::before {
+    width: 154px;
+    height: 154px;
+    right: -26px;
+    top: -58px;
+  }
+
+  .reward-stage::after {
+    width: 102px;
+    height: 102px;
+    left: -20px;
+    bottom: -38px;
+  }
+
+  .reward-stage.mode-quote {
+    background:
+      radial-gradient(circle at 18% 18%, rgba(255,255,255,.62), transparent 26%),
+      linear-gradient(135deg, #e7ebff 0%, #f6e8ff 52%, #ffe4ef 100%);
+  }
+
+  .reward-stage.mode-star {
+    background:
+      radial-gradient(circle at 18% 16%, rgba(255,255,255,.7), transparent 24%),
+      linear-gradient(135deg, #fff4c7 0%, #ffd97d 38%, #ffe5f4 100%);
+  }
+
+  .reward-stage.mode-full-clear {
+    background:
+      radial-gradient(circle at 16% 18%, rgba(255,255,255,.82), transparent 24%),
+      radial-gradient(circle at 84% 18%, rgba(255,255,255,.58), transparent 22%),
+      linear-gradient(115deg, #ffb7d9 0%, #ffd97f 20%, #fff6b0 34%, #9be6ff 56%, #bfa6ff 78%, #ffdaf0 100%);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.56), 0 20px 40px rgba(173, 112, 231, .22);
+  }
+
+  .reward-stage.mode-full-clear::before {
+    width: 190px;
+    height: 190px;
+    right: -30px;
+    top: -72px;
+    background: rgba(255,255,255,.28);
+  }
+
+  .reward-stage.mode-full-clear::after {
+    width: 136px;
+    height: 136px;
+    left: -22px;
+    bottom: -46px;
+    background: rgba(255,255,255,.22);
+  }
+
+  .reward-stage.mode-card.rarity-r {
+    background:
+      radial-gradient(circle at 18% 16%, rgba(255,255,255,.72), transparent 24%),
+      linear-gradient(135deg, #deefff 0%, #9dc5ff 45%, #f3f7ff 100%);
+  }
+
+  .reward-stage.mode-card.rarity-sr {
+    background:
+      radial-gradient(circle at 18% 16%, rgba(255,255,255,.7), transparent 24%),
+      linear-gradient(135deg, #efe0ff 0%, #b489ff 42%, #e4f2ff 100%);
+  }
+
+  .reward-stage.mode-card.rarity-ssr {
+    background:
+      radial-gradient(circle at 18% 16%, rgba(255,255,255,.8), transparent 24%),
+      linear-gradient(135deg, #fff2c3 0%, #f6c955 36%, #ffe4ef 72%, #fff8e4 100%);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.5), 0 18px 36px rgba(214, 156, 22, .24);
+  }
+
+  .reward-stage-spark {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.88);
+    box-shadow: 0 0 18px rgba(255,255,255,.75);
+    animation: sparkleFloat 2.8s ease-in-out infinite;
+    z-index: 0;
+  }
+
+  .reward-stage-spark::after {
+    content: "✦";
+    position: absolute;
+    inset: -8px;
+    display: grid;
+    place-items: center;
+    color: rgba(255,255,255,.92);
+    font-size: 14px;
+  }
+
+  .reward-stage-spark.spark-a { left: 18px; top: 18px; animation-delay: 0s; }
+  .reward-stage-spark.spark-b { right: 32px; top: 34px; animation-delay: .7s; transform: scale(.8); }
+  .reward-stage-spark.spark-c { right: 76px; bottom: 18px; animation-delay: 1.3s; transform: scale(.9); }
+
+  .reward-stage.mode-full-clear .reward-stage-spark {
+    background: rgba(255,255,255,.96);
+    box-shadow: 0 0 22px rgba(255,255,255,.9), 0 0 32px rgba(255, 215, 117, .46);
+    animation-duration: 2s;
+  }
+
+  .reward-stage.mode-full-clear .reward-stage-spark::after {
+    content: '★';
+    color: rgba(255,255,255,.98);
+    font-size: 15px;
+  }
+
+  @keyframes sparkleFloat {
+    0%, 100% { transform: translateY(0) scale(.9); opacity: .72; }
+    50% { transform: translateY(-8px) scale(1.08); opacity: 1; }
+  }
+
+  .reward-stage-copy {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+  }
+
+  .reward-stage-copy .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.56);
+    color: #7d53c5;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: .7px;
+  }
+
+  .reward-stage-icon-wrap {
+    margin: 10px auto 0;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(circle, rgba(255,255,255,.96) 0%, rgba(255,255,255,.68) 45%, rgba(255,255,255,0) 72%);
+    position: relative;
+  }
+
+  .reward-stage-icon-wrap::before,
+  .reward-stage-icon-wrap::after {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.56);
+  }
+
+  .reward-stage-icon-wrap::after {
+    inset: -4px;
+    border-color: rgba(255,255,255,.32);
+    animation: rewardPulse 1.9s ease-in-out infinite;
+  }
+
+  @keyframes rewardPulse {
+    0%, 100% { transform: scale(.96); opacity: .6; }
+    50% { transform: scale(1.06); opacity: 1; }
+  }
+
+  .reward-stage-icon {
+    font-size: 38px;
+    line-height: 1;
+    animation: iconBob 2s ease-in-out infinite;
+    filter: drop-shadow(0 10px 18px rgba(119, 79, 190, .18));
+  }
+
+  .reward-stage.mode-full-clear .reward-stage-icon-wrap {
+    width: 84px;
+    height: 84px;
+    background: radial-gradient(circle, rgba(255,255,255,.98) 0%, rgba(255,255,255,.78) 42%, rgba(255,255,255,0) 76%);
+  }
+
+  .reward-stage.mode-full-clear .reward-stage-icon-wrap::before {
+    border-color: rgba(255,255,255,.82);
+  }
+
+  .reward-stage.mode-full-clear .reward-stage-icon-wrap::after {
+    inset: -8px;
+    border-color: rgba(255,255,255,.44);
+    animation-duration: 1.2s;
+  }
+
+  .reward-stage.mode-full-clear .reward-stage-icon {
+    font-size: 44px;
+    animation: iconBob 1.45s ease-in-out infinite, fullClearGlow 1.6s ease-in-out infinite;
+    filter: drop-shadow(0 12px 22px rgba(255, 193, 70, .28));
+  }
+
+  @keyframes fullClearGlow {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-4px) scale(1.08); }
+  }
+
+  @keyframes iconBob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+
+  .reward-stage-copy h3 {
+    margin-top: 8px;
+    font-size: 26px;
+    line-height: 1.12;
+    font-weight: 900;
+    color: #5d428f;
+  }
+
+  .reward-stage-copy p {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.72;
+    color: #756690;
+  }
+
+  .reward-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .reward-item {
+    display: grid;
+    grid-template-columns: 58px 1fr;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #fff, #fbf8ff);
+    box-shadow: inset 0 0 0 1px rgba(170,145,243,.12);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .reward-item::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 12% 20%, rgba(255,255,255,.34), transparent 22%);
+    pointer-events: none;
+  }
+
+  .reward-item::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(255,255,255,0) 15%, rgba(255,255,255,.34) 46%, rgba(255,255,255,0) 78%);
+    transform: translateX(-120%);
+    animation: rewardSweep 1.5s ease forwards;
+    pointer-events: none;
+  }
+
+  @keyframes rewardSweep {
+    0% { transform: translateX(-120%); }
+    100% { transform: translateX(130%); }
+  }
+
+  .reward-emoji {
+    width: 58px;
+    height: 58px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    background: linear-gradient(135deg, #ffe8f3, #eef8ff);
+    box-shadow: 0 10px 20px rgba(143, 101, 224, .12);
+    position: relative;
+    z-index: 1;
+  }
+
+  .reward-item.star .reward-emoji {
+    background: linear-gradient(135deg, #fff0b9, #ffd56d 55%, #ffe6f5);
+  }
+  .reward-item.quote .reward-emoji {
+    background: linear-gradient(135deg, #eef0ff, #d8e7ff 55%, #ffe9f4);
+  }
+  .reward-item.card .reward-emoji {
+    background: linear-gradient(135deg, #efe7ff, #dccdff 55%, #e9f8ff);
+  }
+
+  .reward-copy {
+    position: relative;
+    z-index: 1;
+  }
+
+  .reward-copy h3 {
+    font-size: 15px;
+    line-height: 1.45;
+    font-weight: 900;
+  }
+
+  .reward-copy p {
+    margin-top: 4px;
+    color: var(--sub);
+    font-size: 12px;
+    line-height: 1.75;
+  }
+
+  .reward-stage.mode-full-clear .reward-stage-copy .badge {
+    background: rgba(255,255,255,.72);
+    color: #9a4d93;
+    box-shadow: 0 10px 18px rgba(255,255,255,.22);
+  }
+
+  .reward-stage.mode-full-clear .reward-stage-copy h3 {
+    color: #8a3f7d;
+    text-shadow: 0 8px 20px rgba(255,255,255,.28);
+  }
+
+  .reward-stage.mode-full-clear .reward-stage-copy p {
+    color: #7b5779;
+    font-size: 12.5px;
+  }
+
+  .reward-item.card {
+    grid-template-columns: 1fr;
+    background: linear-gradient(180deg, #fff9ff, #f9f5ff);
+  }
+
+  .reward-card-preview {
+    margin-top: 12px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .reward-card-preview .pony-card {
+    width: min(228px, 100%);
+    filter: drop-shadow(0 18px 30px rgba(136, 98, 210, .22));
+    animation: cardPopIn .46s cubic-bezier(.19,1,.22,1);
+  }
+
+  .reward-card-preview.unlock .pony-card {
+    animation: unlockReveal .72s cubic-bezier(.19,1,.22,1);
+  }
+
+  @keyframes cardPopIn {
+    0% { transform: translateY(20px) scale(.88) rotate(-2deg); opacity: 0; }
+    100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+  }
+
+  @keyframes unlockReveal {
+    0% { transform: perspective(900px) rotateY(88deg) scale(.82); opacity: 0; }
+    55% { transform: perspective(900px) rotateY(-10deg) scale(1.03); opacity: 1; }
+    100% { transform: perspective(900px) rotateY(0) scale(1); opacity: 1; }
+  }
+
+  .reward-actions,
+  .card-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+
+  .reward-action,
+  .card-action,
+  .library-link {
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 900;
+  }
+
+  .reward-action.primary,
+  .card-action.primary,
+  .library-link.primary {
+    background: linear-gradient(135deg, #ff8ec1, #9f80ff 55%, #7fd0ff);
+    color: white;
+  }
+
+  .reward-action.secondary,
+  .card-action.secondary,
+  .library-link.secondary {
+    background: linear-gradient(135deg, #f7efff, #edf7ff);
+    color: var(--text);
+  }
+
+  .owned-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .owned-empty {
+    padding: 22px 16px;
+    text-align: center;
+    color: var(--sub);
+    font-size: 13px;
+    line-height: 1.8;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #fff, #faf7ff);
+    box-shadow: inset 0 0 0 1px rgba(170,145,243,.12);
+  }
+
+  .owned-item {
+    display: grid;
+    grid-template-columns: 84px 1fr auto;
+    gap: 12px;
+    align-items: center;
+    padding: 12px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #fff, #fbf8ff);
+    box-shadow: inset 0 0 0 1px rgba(170,145,243,.12);
+  }
+
+  .owned-card-mini {
+    transform: scale(.6);
+    transform-origin: left center;
+    height: 92px;
+    width: 84px;
+    margin-left: -10px;
+    pointer-events: none;
+  }
+
+  .owned-name {
+    font-size: 14px;
+    font-weight: 900;
+  }
+
+  .owned-meta {
+    margin-top: 4px;
+    color: var(--sub);
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  .owned-count {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f8efff, #edf8ff);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 900;
+  }
+
+  .library-page {
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(circle at 12% 10%, rgba(255, 214, 234, .72), transparent 20%),
+      radial-gradient(circle at 86% 12%, rgba(214, 235, 255, .7), transparent 18%),
+      linear-gradient(180deg, #fff9ff 0%, #fdf8ff 100%);
+    z-index: 45;
+    display: none;
+    overflow-y: auto;
+    padding: 18px;
+  }
+
+  .library-page.show { display: block; }
+
+  .library-shell {
+    max-width: 1180px;
+    margin: 0 auto;
+    background: rgba(255,255,255,.56);
+    border: 1px solid rgba(255,255,255,.4);
+    border-radius: 28px;
+    padding: 18px;
+    box-shadow: 0 20px 48px rgba(136, 98, 210, .12);
+    backdrop-filter: blur(10px);
+  }
+
+  .library-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .library-wallet {
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(255,255,255,.96), rgba(248,243,255,.94));
+    box-shadow: inset 0 0 0 1px rgba(170,145,243,.12);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .library-wallet .stars {
+    min-width: 104px;
+    padding: 9px 12px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #fff1ba, #ffe7f4 58%, #eef8ff);
+    color: #7a5a18;
+    font-size: 15px;
+    font-weight: 900;
+    text-align: center;
+    box-shadow: inset 0 0 0 1px rgba(246,197,74,.24);
+  }
+
+  .library-wallet .tips {
+    color: var(--sub);
+    font-size: 12px;
+    line-height: 1.7;
+    font-weight: 800;
+  }
+
+  .wallet-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .wallet-badge {
+    padding: 7px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 900;
+    color: var(--text);
+    background: rgba(255,255,255,.88);
+    box-shadow: inset 0 0 0 1px rgba(170,145,243,.12);
+  }
+
+  .wallet-badge.hot {
+    background: linear-gradient(135deg, #ffe5f2, #edf4ff);
+  }
+
+  .library-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 26px;
+    font-weight: 900;
+  }
+
+  .library-title .icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #ffe5f2, #edf4ff);
+  }
+
+  .library-header-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .catalog-intro {
+    margin-bottom: 14px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(255,255,255,.96), rgba(247,242,255,.94));
+    box-shadow: inset 0 0 0 1px rgba(170,145,243,.12);
+  }
+
+  .catalog-intro .title {
+    font-size: 15px;
+    font-weight: 900;
+  }
+
+  .catalog-intro .sub {
+    margin-top: 4px;
+    color: var(--sub);
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  .catalog-board {
+    display: grid;
+    gap: 18px;
+  }
+
+  .catalog-group {
+    background: rgba(255,255,255,.92);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    box-shadow: var(--shadow);
+    padding: 16px;
+  }
+
+  .catalog-group-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .catalog-group-head h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 900;
+  }
+
+  .catalog-group-meta {
+    color: var(--sub);
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .catalog-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+  }
+
+  .catalog-tile {
+    display: grid;
+    gap: 10px;
+  }
+
+  .catalog-note {
+    padding: 0 6px;
+  }
+
+  .catalog-note .name {
+    font-size: 14px;
+    font-weight: 900;
+  }
+
+  .catalog-note .desc {
+    margin-top: 4px;
+    color: var(--sub);
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  .library-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .summary-pill {
+    background: rgba(255,255,255,.92);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    padding: 12px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .summary-pill::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(255,255,255,0) 15%, rgba(255,255,255,.4) 48%, rgba(255,255,255,0) 80%);
+    transform: translateX(-120%);
+    animation: rewardSweep 1.8s ease forwards;
+    pointer-events: none;
+  }
+
+  .summary-pill .num {
+    font-size: 24px;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .summary-pill .label {
+    margin-top: 6px;
+    color: var(--sub);
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .album-progress {
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(255,255,255,.94), rgba(250,246,255,.94));
+    box-shadow: inset 0 0 0 1px rgba(170,145,243,.12);
+  }
+
+  .album-progress-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+
+  .album-progress-top .title {
+    font-size: 14px;
+    font-weight: 900;
+  }
+
+  .album-progress-top .meta {
+    color: var(--sub);
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .album-track {
+    height: 12px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: linear-gradient(180deg, #efe8ff, #f8f4ff);
+    box-shadow: inset 0 0 0 1px rgba(170,145,243,.12);
+  }
+
+  .album-fill {
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #ff8ec1, #9f80ff 55%, #7fd0ff);
+    transition: width .28s ease;
+  }
+
+  .library-filter {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .library-guide {
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(255,255,255,.96), rgba(249,245,255,.94));
+    box-shadow: inset 0 0 0 1px rgba(170,145,243,.12);
+    display: grid;
+    gap: 8px;
+  }
+
+  .library-guide-title {
+    font-size: 13px;
+    font-weight: 900;
+  }
+
+  .library-guide-steps {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .guide-step {
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: white;
+    box-shadow: inset 0 0 0 1px rgba(170,145,243,.12);
+    color: var(--sub);
+    font-size: 11px;
+    font-weight: 900;
+  }
+
+  .tab-btn {
+    padding: 9px 14px;
+    border-radius: 999px;
+    background: white;
+    color: var(--sub);
+    font-size: 12px;
+    font-weight: 900;
+    box-shadow: inset 0 0 0 1px rgba(170,145,243,.16);
+  }
+
+  .tab-btn.active {
+    background: linear-gradient(135deg, #ff8ec1, #9f80ff 55%, #7fd0ff);
+    color: white;
+    box-shadow: 0 10px 20px rgba(142, 99, 223, .16);
+  }
+
+  .library-section + .library-section { margin-top: 18px; }
+
+  .library-section-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+
+  .library-section-head h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: 900;
+  }
+
+  .section-count {
+    color: var(--sub);
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .rarity-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 46px;
+    height: 26px;
+    border-radius: 999px;
+    color: white;
+    font-size: 12px;
+    font-weight: 900;
+  }
+
+  .rarity-pill.r { background: linear-gradient(135deg, var(--r), #3f81ff); }
+  .rarity-pill.sr { background: linear-gradient(135deg, var(--sr), #7b41dd); }
+  .rarity-pill.ssr { background: linear-gradient(135deg, var(--ssr), #cf9304); }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(174px, 1fr));
+    gap: 14px;
+  }
+
+  .album-sheet {
+    padding: 14px;
+    border-radius: 24px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.92), rgba(248,243,255,.9)),
+      linear-gradient(135deg, rgba(255,255,255,.35), rgba(255,255,255,0));
+    box-shadow: inset 0 0 0 1px rgba(170,145,243,.1), 0 18px 34px rgba(136, 98, 210, .09);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .album-sheet::before {
+    content: "";
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    bottom: 12px;
+    width: 5px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(255,142,193,.55), rgba(159,128,255,.5), rgba(127,208,255,.5));
+  }
+
+  .pony-card {
+    position: relative;
+    border-radius: 24px;
+    padding: 5px;
+    min-height: 258px;
+    background: linear-gradient(145deg, rgba(255,255,255,.78), rgba(255,255,255,.2));
+    transition: transform .18s ease, filter .18s ease;
+    overflow: hidden;
+  }
+
+  .pony-card.locked { cursor: pointer; }
+
+  .pony-card.locked.can-unlock {
+    animation: unlockPulse 2s ease-in-out infinite;
+  }
+
+  .pony-card.locked.insufficient {
+    opacity: .62;
+    filter: grayscale(.16) saturate(.82);
+  }
+
+  .pony-card.locked.insufficient:hover {
+    transform: none;
+    filter: grayscale(.16) saturate(.82);
+  }
+
+  .pony-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(120deg, rgba(255,255,255,0) 12%, rgba(255,255,255,.34) 44%, rgba(255,255,255,0) 76%);
+    transform: translateX(-130%);
+    pointer-events: none;
+    opacity: .9;
+  }
+
+  .pony-card:hover {
+    transform: translateY(-4px) scale(1.01);
+    filter: drop-shadow(0 18px 28px rgba(136, 98, 210, .18));
+  }
+
+  .pony-card:hover::before { animation: cardSweep 1s ease forwards; }
+
+  @keyframes cardSweep {
+    0% { transform: translateX(-130%); }
+    100% { transform: translateX(135%); }
+  }
+
+  @keyframes unlockPulse {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-2px) scale(1.01); }
+  }
+
+  .pony-card.r {
+    box-shadow: inset 0 0 0 2px rgba(95,168,255,.78), 0 10px 18px rgba(95,168,255,.12);
+  }
+  .pony-card.sr {
+    box-shadow: inset 0 0 0 2px rgba(155,99,255,.82), 0 10px 18px rgba(155,99,255,.14);
+  }
+  .pony-card.ssr {
+    box-shadow: inset 0 0 0 2px rgba(243,190,68,.9), 0 12px 20px rgba(227, 170, 30, .2);
+  }
+
+  .pony-card-inner {
+    height: 100%;
+    border-radius: 19px;
+    overflow: hidden;
+    background: linear-gradient(180deg, rgba(255,255,255,.97), rgba(255,255,255,.84));
+  }
+
+  .pony-card-front,
+  .pony-card-back {
+    min-height: 248px;
+    height: 100%;
+    padding: 12px;
+    position: relative;
+  }
+
+  .pony-card-front::before,
+  .pony-card-back::before {
+    content: "";
+    position: absolute;
+    inset: 10px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,.3);
+    pointer-events: none;
+  }
+
+  .pony-card-front::after,
+  .pony-card-back::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,.26), transparent 48%, rgba(255,255,255,.08));
+    pointer-events: none;
+  }
+
+  .pony-card-front {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    cursor: pointer;
+  }
+
+  .pony-card-front.r {
+    background: linear-gradient(180deg, rgba(224,241,255,.66), rgba(255,255,255,.78));
+  }
+
+  .pony-card-front.sr {
+    background: linear-gradient(180deg, rgba(241,228,255,.72), rgba(255,255,255,.8));
+  }
+
+  .pony-card-front.ssr {
+    background:
+      radial-gradient(circle at 16% 16%, rgba(255,255,255,.46), transparent 26%),
+      linear-gradient(180deg, rgba(255,241,198,.84), rgba(255,255,255,.82));
+  }
+
+  .pony-card-back {
+    display: grid;
+    place-items: center;
+    text-align: center;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(255,255,255,.36), transparent 28%),
+      radial-gradient(circle at 80% 18%, rgba(255,255,255,.24), transparent 24%),
+      linear-gradient(135deg, #f8f0ff, #eef8ff 55%, #fff4e4);
+  }
+
+  .card-topline {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 10px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-name {
+    font-size: 13px;
+    font-weight: 900;
+    line-height: 1.35;
+    text-shadow: 0 1px 0 rgba(255,255,255,.5);
+  }
+
+  .card-number {
+    margin-top: 3px;
+    font-size: 10px;
+    color: rgba(75,63,102,.56);
+    letter-spacing: .8px;
+    font-weight: 900;
+  }
+
+  .rarity-badge {
+    min-width: 42px;
+    height: 24px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 11px;
+    font-weight: 900;
+    box-shadow: 0 6px 12px rgba(112, 80, 189, .15);
+  }
+
+  .rarity-badge.r { background: linear-gradient(135deg, var(--r), #3c7af1); }
+  .rarity-badge.sr { background: linear-gradient(135deg, var(--sr), #7f42df); }
+  .rarity-badge.ssr { background: linear-gradient(135deg, var(--ssr), #d59300); }
+
+  .card-art {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 146px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-art::before {
+    content: "";
+    position: absolute;
+    width: 132px;
+    height: 132px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,.5), rgba(255,255,255,0) 70%);
+  }
+
+  .card-art svg {
+    width: 100%;
+    max-width: 132px;
+    filter: drop-shadow(0 12px 18px rgba(117, 76, 188, .18));
+  }
+
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: end;
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-skill {
+    color: var(--sub);
+    font-size: 12px;
+    line-height: 1.58;
+  }
+
+  .card-series {
+    margin-top: 4px;
+    font-size: 10px;
+    letter-spacing: .7px;
+    color: rgba(75,63,102,.58);
+    font-weight: 800;
+  }
+
+  .card-count {
+    min-width: 30px;
+    height: 30px;
+    padding: 0 9px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.88);
+    box-shadow: inset 0 0 0 1px rgba(170,145,243,.16);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 900;
+  }
+
+  .card-back-face {
+    width: 100%;
+    height: 100%;
+    border-radius: 16px;
+    display: grid;
+    place-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-back-face.r { background: linear-gradient(145deg, #dcefff, #79b2ff 55%, #e6f5ff); }
+  .card-back-face.sr { background: linear-gradient(145deg, #efe0ff, #9a63ff 55%, #f7f1ff); }
+  .card-back-face.ssr { background: linear-gradient(145deg, #fff4d7, #f3c453 55%, #fffaf0); }
+
+  .card-back-face::before {
+    content: "";
+    position: absolute;
+    width: 118px;
+    height: 118px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.56);
+    box-shadow: 0 0 0 10px rgba(255,255,255,.12), 0 0 0 18px rgba(255,255,255,.08);
+  }
+
+  .card-back-face::after {
+    content: "";
+    position: absolute;
+    inset: 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,.34);
+  }
+
+  .back-corner {
+    position: absolute;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,.34);
+    transform: rotate(45deg);
+    opacity: .5;
+  }
+
+  .back-corner.tl { top: 12px; left: 12px; }
+  .back-corner.tr { top: 12px; right: 12px; }
+  .back-corner.bl { bottom: 12px; left: 12px; }
+  .back-corner.br { bottom: 12px; right: 12px; }
+
+  .back-center {
+    position: relative;
+    z-index: 1;
+    color: white;
+  }
+
+  .back-center .mark {
+    font-size: 34px;
+    line-height: 1;
+    text-shadow: 0 10px 18px rgba(116, 73, 191, .18);
+  }
+
+  .back-center .tip {
+    margin-top: 8px;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    opacity: .94;
+  }
+
+  .card-detail-grid {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  .detail-box {
+    padding: 14px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #fff, #fbf8ff);
+    box-shadow: inset 0 0 0 1px rgba(170,145,243,.12);
+  }
+
+  .detail-box .k {
+    color: var(--sub);
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+
+  .detail-box .v {
+    font-size: 14px;
+    line-height: 1.8;
+  }
+
+  .detail-box ul {
+    padding-left: 18px;
+    color: var(--sub);
+    font-size: 13px;
+    line-height: 1.8;
+  }
+
+  @media (max-width: 980px) {
+    .dashboard-row { grid-template-columns: 1fr; }
+    .card-detail-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 760px) {
+    body { padding: 12px; }
+    .topbar { grid-template-columns: 1fr 68px; padding: 10px 12px; }
+    .topbar h1 { font-size: 18px; }
+    .mini-badge { font-size: 9px; }
+    .stats-row,
+    .library-summary { grid-template-columns: 1fr; }
+    .week-strip { grid-template-columns: repeat(7, minmax(58px, 1fr)); overflow-x: auto; }
+    .day-pill { min-width: 58px; }
+    .progress-meta { grid-template-columns: 1fr; }
+    .task-item { align-items: flex-start; }
+    .task-badge { margin-top: 2px; }
+    .card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .owned-item { grid-template-columns: 1fr; }
+    .owned-card-mini { margin-left: 0; transform: scale(.72); transform-origin: center top; width: auto; height: auto; }
+    .library-shell { padding: 14px; }
+    .reward-stage { padding: 16px 12px 14px; }
+    .reward-stage-icon-wrap { width: 64px; height: 64px; }
+    .reward-stage-icon { font-size: 32px; }
+    .reward-stage-copy h3 { font-size: 22px; }
+    .album-sheet::before { left: 10px; top: 10px; bottom: 10px; }
+    .card-number, .card-series { font-size: 8px; }
   }
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">
-    <h1>📚 暑假学习 · 每日打卡</h1>
-    <div class="date-label" id="headerDate">—</div>
-  </div>
+  <section class="topbar">
+    <div class="topbar-copy">
+      <div class="mini-badge">🦄 彩虹小马学习乐园</div>
+      <h1>暑假学习 · 彩虹打卡乐园</h1>
+    </div>
+    <div class="topbar-art">
+      <svg class="pony-mini" viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="miniMane" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#ff79b4"/>
+            <stop offset="52%" stop-color="#8b7aff"/>
+            <stop offset="100%" stop-color="#6dd4ff"/>
+          </linearGradient>
+        </defs>
+        <ellipse cx="52" cy="40" rx="24" ry="12" fill="rgba(255,255,255,.7)"/>
+        <ellipse cx="104" cy="54" rx="20" ry="10" fill="rgba(255,255,255,.64)"/>
+        <path d="M88 92c14-12 18-28 17-40-15 4-29 13-35 27 3 7 9 11 18 13z" fill="rgba(255,255,255,.38)"/>
+        <path d="M52 108c-13 0-23-8-26-20l-6-23c-2-7 3-15 10-17l38-8c11-3 23 3 28 13l8 14c8 16-3 34-19 36l-33 5z" fill="#fff7fe"/>
+        <path d="M86 38c13 3 22 13 23 26 1 13-8 24-21 28-14 3-28-5-33-18-5-13 1-28 14-33 5-2 10-3 17-3z" fill="#fff7fe"/>
+        <path d="M71 24l6-13 6 12" fill="none" stroke="#ffefbc" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M107 51c-5-14-17-23-34-27 4 8 1 16-5 23 9 6 24 10 39 4z" fill="url(#miniMane)"/>
+        <path d="M67 69c-10 9-14 21-11 35 12-5 22-3 29 4 4-12 1-27-18-39z" fill="url(#miniMane)"/>
+        <circle cx="88" cy="59" r="5.4" fill="#4a4262"/>
+        <circle cx="90" cy="57" r="1.6" fill="#fff"/>
+        <path d="M98 69c4 3 8 3 12 0" fill="none" stroke="#ef77a7" stroke-width="3" stroke-linecap="round"/>
+        <path d="M47 110l-8 27" stroke="#fff1f7" stroke-width="8" stroke-linecap="round"/>
+        <path d="M66 113l-2 24" stroke="#fff1f7" stroke-width="8" stroke-linecap="round"/>
+        <path d="M84 110l6 26" stroke="#fff1f7" stroke-width="8" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </section>
 
-  <!-- Calendar -->
-  <div class="calendar-wrap">
-    <div class="cal-header">
-      <button onclick="changeMonth(-1)">◀</button>
-      <span class="month-label" id="monthLabel"></span>
-      <button onclick="changeMonth(1)">▶</button>
+  <section class="stats-row">
+    <div class="stat-card">
+      <div class="stat-top"><span class="stat-label">总星星</span><span class="stat-icon">⭐</span></div>
+      <div class="stat-main"><span class="stat-value" id="totalStars">0</span><span class="stat-unit">颗</span></div>
+      <div class="stat-desc" id="starHint">首次完成任务 +1，满进度再补 +2。</div>
     </div>
-    <div class="cal-weekdays">
-      <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+    <div class="stat-card">
+      <div class="stat-top"><span class="stat-label">连续打卡计数</span><span class="stat-icon">🔥</span></div>
+      <div class="stat-main"><span class="stat-value" id="checkinStreak">0</span><span class="stat-unit">天</span></div>
+      <div class="stat-desc" id="checkinHint">按任意完成任务计入连续打卡。</div>
     </div>
-    <div class="cal-days" id="calDays"></div>
-    <div class="cal-legend">
-      <span><span class="legend-dot course"></span> 课程期间</span>
-      <span><span class="legend-dot weekend-leg"></span> 周末减量</span>
-      <span><span style="color:#667eea;font-weight:700;">●</span> 已选日期</span>
+    <button class="stat-card clickable" type="button" onclick="enterLibraryPage()">
+      <div class="stat-top"><span class="stat-label">已获得卡片</span><span class="stat-icon">🃏</span></div>
+      <div class="stat-main"><span class="stat-value" id="ownedCards">0</span><span class="stat-unit">张</span></div>
+      <div class="stat-desc" id="ownedHint">点击直接进入我的卡片库。</div>
+    </button>
+  </section>
+
+  <section class="dashboard-row">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title"><span class="icon">📅</span><span>打卡日历</span></div>
+        <button class="ghost-btn" type="button" onclick="jumpToToday()">回到今天</button>
+      </div>
+      <div class="panel-sub">当前周视图，点日期切换当天任务。</div>
+      <div class="panel-body">
+        <div class="week-head">
+          <div class="week-range" id="weekRange">—</div>
+          <div class="week-nav">
+            <button class="nav-btn" type="button" onclick="changeWeek(-1)">‹</button>
+            <button class="nav-btn" type="button" onclick="changeWeek(1)">›</button>
+          </div>
+        </div>
+        <div class="week-strip" id="weekStrip"></div>
+      </div>
+    </div>
+
+    <div class="panel progress-card">
+      <div class="panel-head">
+        <div class="panel-title"><span class="icon">🌈</span><span>今日进度</span></div>
+      </div>
+      <div class="panel-body">
+        <div class="progress-top">
+          <div class="selected-date" id="selectedDateLabel">—</div>
+          <div class="mode-chip regular" id="modeChip">常规计划</div>
+        </div>
+        <div class="progress-main">
+          <div class="progress-text">
+            <strong id="progressValue">0%</strong>
+            <span id="progressCount">0 / 0</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+          <div class="progress-meta">
+            <div class="progress-meta-item">
+              <div class="k">今日完成</div>
+              <div class="v" id="progressSummary">还没开始，先完成第一项拿下今天的节奏。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="task-panel">
+      <div class="task-head">
+      <div class="title"><span class="icon">✅</span><span>当日课表与待办</span></div>
+      <div class="sub">勾选即保存</div>
+    </div>
+    <div class="task-body" id="taskArea"></div>
+  </section>
+</div>
+
+<div class="modal" id="rewardModal" onclick="closeModalOnMask(event, 'rewardModal')">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-title" id="rewardModalTitle">完成啦</div>
+      <button class="modal-close" type="button" onclick="closeModal('rewardModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="reward-stage" id="rewardStage">
+        <span class="reward-stage-spark spark-a"></span>
+        <span class="reward-stage-spark spark-b"></span>
+        <span class="reward-stage-spark spark-c"></span>
+        <div class="reward-stage-copy">
+          <div class="badge" id="rewardStageBadge">REWARD POP</div>
+          <div class="reward-stage-icon-wrap"><div class="reward-stage-icon" id="rewardStageIcon">🎁</div></div>
+          <h3 id="rewardStageTitle">奖励到账啦</h3>
+          <p id="rewardStageDesc">勾选完成事项后，星星、鼓励语和掉卡会集中在这里弹出。</p>
+        </div>
+      </div>
+      <div class="reward-list" id="rewardList"></div>
+      <div class="reward-actions">
+        <button class="reward-action primary" type="button" onclick="closeModal('rewardModal')">继续打卡</button>
+      </div>
     </div>
   </div>
+</div>
 
-  <!-- Schedule -->
-  <div class="schedule" id="schedule"></div>
+<div class="modal" id="cardDetailModal" onclick="closeModalOnMask(event, 'cardDetailModal')">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-title" id="detailTitle">卡片详情</div>
+      <button class="modal-close" type="button" onclick="closeModal('cardDetailModal')">×</button>
+    </div>
+    <div class="modal-body" id="cardDetailBody"></div>
+  </div>
+</div>
+
+<div class="library-page" id="libraryPage">
+  <div class="library-shell">
+    <div class="library-header">
+      <div class="library-title"><span class="icon">🃏</span><span>我的卡片库</span></div>
+      <div class="library-header-actions">
+        <button class="card-action secondary" type="button" onclick="openCardCatalogPage()">查看全部卡面</button>
+        <button class="card-action secondary" type="button" onclick="leaveLibraryPage()">← 返回打卡页</button>
+      </div>
+    </div>
+    <div class="library-wallet">
+      <div>
+        <div class="boost-title">星星解锁入口</div>
+        <div class="tips" id="libraryUnlockTip">点未解锁卡片即可用星星解锁；SSR 仍然不能直接解锁。</div>
+        <div class="wallet-badges">
+          <span class="wallet-badge hot" id="walletRBadge">R 可解锁：0 张</span>
+          <span class="wallet-badge" id="walletSRBadge">SR 可解锁：0 张</span>
+          <span class="wallet-badge" id="walletSSRBadge">SSR：仅掉落</span>
+        </div>
+      </div>
+      <div class="stars" id="libraryStars">⭐ 0</div>
+    </div>
+    <div class="library-summary" id="librarySummary"></div>
+    <div class="album-progress">
+      <div class="album-progress-top">
+        <div class="title">收藏册解锁进度</div>
+        <div class="meta" id="albumProgressText">0 / 0</div>
+      </div>
+      <div class="album-track"><div class="album-fill" id="albumProgressFill"></div></div>
+    </div>
+    <div class="library-guide">
+      <div class="library-guide-title">收藏册浏览说明</div>
+      <div class="library-guide-steps">
+        <span class="guide-step">① 先看星星余额</span>
+        <span class="guide-step">② 点可解锁卡背</span>
+        <span class="guide-step">③ 确认后翻正面</span>
+        <span class="guide-step">④ 已解锁可看详情</span>
+      </div>
+    </div>
+    <div class="library-filter">
+      <button class="tab-btn active" type="button" onclick="setLibraryFilter('ALL', this)">全部</button>
+      <button class="tab-btn" type="button" onclick="setLibraryFilter('R', this)">R</button>
+      <button class="tab-btn" type="button" onclick="setLibraryFilter('SR', this)">SR</button>
+      <button class="tab-btn" type="button" onclick="setLibraryFilter('SSR', this)">SSR</button>
+    </div>
+    <div id="libraryContent"></div>
+  </div>
+</div>
+
+<div class="library-page" id="catalogPage">
+  <div class="library-shell">
+    <div class="library-header">
+      <div class="library-title"><span class="icon">✨</span><span>全部卡面预览</span></div>
+      <div class="library-header-actions">
+        <button class="card-action secondary" type="button" onclick="closeCardCatalogPage()">← 返回我的卡片库</button>
+      </div>
+    </div>
+    <div class="catalog-intro">
+      <div class="title">这里展示全部卡片正面</div>
+      <div class="sub">不受是否已解锁限制，方便你统一查看每一张卡的正面、名称、主题和描述，再告诉我哪些卡想继续优化。</div>
+    </div>
+    <div class="catalog-board" id="catalogBoard"></div>
+  </div>
 </div>
 
 <script>
-// ============ DATA ============
-const COURSE_START = new Date(2026, 7, 3);  // Aug 3
-const COURSE_END   = new Date(2026, 7, 16); // Aug 16
-const PLAN_END     = new Date(2026, 7, 31); // Aug 31
+  const CHECKS_KEY = 'summer_checks';
+  const REWARD_KEY = 'summer_reward_center_v4';
+  const LEGACY_REWARD_KEY = 'summer_reward_center_v3';
+  const PLAN_START = new Date(2026, 6, 1);
+  const COURSE_START = new Date(2026, 7, 3);
+  const COURSE_END = new Date(2026, 7, 16);
+  const PLAN_END = new Date(2026, 7, 31);
 
-// Regular plan tasks
-const REGULAR_TASKS = {
-  morning: [
-    { id: 'cn-read',   name: '语文晨读（337模式）', detail: '大声朗读，15-20分钟。3类内容各读3天，7天一循环', subject: 'cn' },
-    { id: 'en-read',   name: '英语晨读', detail: '学而思读本，大声朗读，10-15分钟', subject: 'en' },
-    { id: 'cn-happy',  name: '快乐读书吧', detail: '书目：《青蛙洗衣店》，阅读 15分钟，可读给外婆爷爷听', subject: 'cn' },
-    { id: 'cn-cibiao', name: '复习2年级生词表 + 词语表', detail: '每天1课，约10-15分钟', subject: 'cn' },
-    { id: 'cn-yiben',  name: '《一本》三年级生词', detail: '每天1个单元，约10-15分钟', subject: 'cn' },
-  ],
-  afternoon: [
-    { id: 'cn-53',     name: '53天天练', detail: '一天1课，写完并订正', subject: 'cn' },
-    { id: 'ma-xueba',  name: '学霸', detail: '每天1课，20-40分钟，写完并订正', subject: 'ma' },
-    { id: 'en-pic',    name: '乐读绘本', detail: '每天1课', subject: 'en' },
-    { id: 'en-word',   name: '单词抄写 + 默写', detail: '1-2年级单词，每天1个Unit，约10-15分钟', subject: 'en' },
-    { id: 'ma-shugan', name: '数感训练', detail: '每天2页，约20分钟，做完并订正', subject: 'ma' },
-  ],
-  evening: [
-    { id: 'en-toon',   name: '字母积木动画片', detail: '每天3集，约10分钟', subject: 'en' },
-    { id: 'en-market', name: '乐读单词小超市', detail: '每天1个Day', subject: 'en' },
-    { id: 'en-copy',   name: '课文抄写', detail: '二下课文，每周2个Unit（周二/周四），15分钟', subject: 'en', tueThu: true },
-  ]
-};
+  const DAILY_FIRST_QUOTES = [
+    '今天已经顺利起跑了，继续一项一项往前推。',
+    '第一步走得很稳，后面的节奏会越来越顺。',
+    '小马已经开始为你鼓掌啦，继续冲。',
+    '这一下很关键，今天不再是空白页了。',
+    '开头很漂亮，今天可以继续连着拿星星。',
+    '很好，第一颗星已经到手，今天的状态不错。',
+    '你已经启动了今天的学习引擎。',
+    '只要继续保持，今天会很完整。'
+  ];
 
-// Course period tasks (Aug 3-16)
-const COURSE_TASKS = {
-  morning: [
-    { id: 'cn-read-c',   name: '语文晨读（337模式）', detail: '大声朗读，20分钟', subject: 'cn' },
-    { id: 'en-read-c',   name: '英语晨读', detail: '学而思读本，大声朗读，10分钟', subject: 'en' },
-    { id: 'en-class',    name: '🏫 英语暑期课', detail: '2小时', subject: 'en' },
-  ],
-  afternoon: [
-    { id: 'cn-happy-c',  name: '快乐读书吧', detail: '书目：《青蛙洗衣店》，阅读 15分钟', subject: 'cn' },
-    { id: 'ma-class',    name: '🏫 数学暑期课', detail: '2小时', subject: 'ma' },
-    { id: 'ma-hw',       name: '数学课后作业', detail: '约20-30分钟，当天完成', subject: 'ma' },
-    { id: 'ma-shugan-c', name: '数感训练', detail: '每天1页，约10分钟，做完并订正', subject: 'ma' },
-  ],
-  evening: [
-    { id: 'en-hw',       name: '英语课后作业', detail: '约40分钟，当天完成', subject: 'en' },
-    { id: 'en-toon-c',   name: '字母积木动画片', detail: '每天3集，约10分钟', subject: 'en' },
-    { id: 'en-market-c', name: '乐读单词小超市', detail: '每天1个Day', subject: 'en' },
-  ]
-};
+  const GENERIC_QUOTES = [
+    '继续保持，今天的进度条正在变亮。',
+    '又完成一项，离今天的彩虹终点更近了。',
+    '这一项拿下得很稳，继续往前走。',
+    '状态不错，按这个节奏继续冲。',
+    '很好，今天的页面又亮起来一点。',
+    '做得对，一项一项完成就是最稳的节奏。',
+    '你在认真推进，奖励会跟上的。',
+    '这一格已经点亮，继续去收下一格。'
+  ];
 
-// Weekend reduced tasks
-const WEEKEND_SAT = {
-  morning: [
-    { id: 'cn-read-w',  name: '语文晨读（337模式）', detail: '大声朗读，15-20分钟', subject: 'cn' },
-    { id: 'en-read-w',  name: '英语晨读', detail: '学而思读本，大声朗读，10-15分钟', subject: 'en' },
-    { id: 'cn-happy-w', name: '快乐读书吧', detail: '书目：《青蛙洗衣店》，阅读 15分钟', subject: 'cn' },
-    { id: 'cn-cibiao-w', name: '复习2年级生词表 + 词语表', detail: '每天1课，约10-15分钟', subject: 'cn' },
-  ],
-  afternoon: [
-    { id: 'ma-shugan-w', name: '数感训练', detail: '每天1页，约10分钟，做完并订正', subject: 'ma' },
-    { id: 'en-word-w',   name: '单词抄写 + 默写', detail: '1-2年级单词，每天1个Unit，约10-15分钟', subject: 'en' },
-  ],
-  evening: [
-    { id: 'en-toon-w',  name: '字母积木动画片', detail: '每天3集，约10分钟', subject: 'en' },
-    { id: 'en-market-w', name: '乐读单词小超市', detail: '每天1个Day', subject: 'en' },
-  ]
-};
+  const CARD_POOL = [
+    { id: 'r-apple-glow', rarity: 'R', name: '苹果晨光', skill: '晨读能量', description: '清晨系 R 卡，适合配合语文晨读和字词复习。', colors: { a: '#ffc3d4', b: '#ff76a8', c: '#ffe38a', mane1: '#ff6a98', mane2: '#ffcc4d', body: '#fff8fd' }, mark: '✦', accent: '晨读之星' },
+    { id: 'r-cloud-bubble', rarity: 'R', name: '云朵泡泡', skill: '阅读陪伴', description: '轻盈阅读系 R 卡，适合快乐读书吧和睡前鼓励。', colors: { a: '#cfeeff', b: '#76c5ff', c: '#e0d2ff', mane1: '#62bcff', mane2: '#9a78ff', body: '#ffffff' }, mark: '☁', accent: '阅读之云' },
+    { id: 'r-mint-hop', rarity: 'R', name: '薄荷跳跳', skill: '数感冲刺', description: '清新数感系 R 卡，适合数学练习日。', colors: { a: '#ddfff2', b: '#86e0be', c: '#d9f5ff', mane1: '#5fd2aa', mane2: '#65c7ff', body: '#f8fffd' }, mark: '◆', accent: '数感闪光' },
+    { id: 'r-sea-star', rarity: 'R', name: '海盐星铃', skill: '单词记忆', description: '蓝调背词系 R 卡，适合单词抄写 + 默写。', colors: { a: '#e5f2ff', b: '#7fb7ff', c: '#fff0f8', mane1: '#79a7ff', mane2: '#ff87c7', body: '#ffffff' }, mark: '✧', accent: '单词清铃' },
+    { id: 'r-candy-book', rarity: 'R', name: '糖霜书书', skill: '绘本跟读', description: '甜系绘本 R 卡，适合英语乐读绘本。', colors: { a: '#ffe8f3', b: '#ff9dc4', c: '#fff2c8', mane1: '#ff7fb0', mane2: '#ffd36d', body: '#fffdfd' }, mark: '❤', accent: '绘本糖心' },
+    { id: 'r-rain-step', rarity: 'R', name: '雨滴飞飞', skill: '动画补给', description: '轻松输入系 R 卡，适合动画片和单词小超市。', colors: { a: '#e7f9ff', b: '#78d1ff', c: '#eef0ff', mane1: '#6dc8ff', mane2: '#8e86ff', body: '#fbffff' }, mark: '✿', accent: '轻松输入' },
+    { id: 'r-lemon-note', rarity: 'R', name: '柠檬练练', skill: '订正耐心', description: '练习订正系 R 卡，提醒做完后别忘了订正。', colors: { a: '#fff8cb', b: '#ffd96a', c: '#ffe5f6', mane1: '#ffd45b', mane2: '#ff92cd', body: '#fffef7' }, mark: '♫', accent: '订正闪记' },
+    { id: 'sr-rainbow-dash', rarity: 'SR', name: '彩虹逐风', skill: '满进度加速', description: '高闪 SR 卡，适合状态特别好的满进度日。', colors: { a: '#dff7ff', b: '#62c4ff', c: '#ffe6f8', mane1: '#ff73aa', mane2: '#6f85ff', body: '#ffffff' }, mark: '⚡', accent: '彩虹冲刺' },
+    { id: 'sr-purple-magic', rarity: 'SR', name: '紫晶星语', skill: '专注魔法', description: '紫系 SR 卡，适合课程期间也不掉节奏的时候。', colors: { a: '#efe4ff', b: '#a77dff', c: '#ffdff1', mane1: '#8f63ff', mane2: '#ff91cb', body: '#fffaff' }, mark: '✪', accent: '专注魔法' },
+    { id: 'sr-moon-berry', rarity: 'SR', name: '月莓旋律', skill: '夜晚收尾', description: '夜色 SR 卡，适合晚上完成作业与动画输入。', colors: { a: '#ece9ff', b: '#8f8aff', c: '#ffe5f2', mane1: '#7c75ff', mane2: '#ff8cb8', body: '#fffefe' }, mark: '☾', accent: '晚安旋律' },
+    { id: 'sr-aurora-glow', rarity: 'SR', name: '极光闪闪', skill: '连胜追光', description: '极光 SR 卡，适合三连胜或七连胜掉落。', colors: { a: '#e4fff8', b: '#67ddb7', c: '#e8f0ff', mane1: '#62d5b0', mane2: '#77b5ff', body: '#fcffff' }, mark: '✺', accent: '追光连胜' },
+    { id: 'ssr-sun-crown', rarity: 'SSR', name: '日冕王冠', skill: '七日大奖', description: '金边 SSR 卡，只能通过 7 天满进度随机掉落。', colors: { a: '#fff6d6', b: '#f4c34b', c: '#ffe4ef', mane1: '#f3ba34', mane2: '#ff8db7', body: '#fffdf7' }, mark: '♛', accent: '日冕闪耀' },
+    { id: 'ssr-galaxy-dream', rarity: 'SSR', name: '银河梦境', skill: '终极收藏', description: '梦幻 SSR 卡，只能通过 7 天满进度随机掉落。', colors: { a: '#f6e9ff', b: '#bd87ff', c: '#fff3d2', mane1: '#9a66ff', mane2: '#ffcf67', body: '#fffaff' }, mark: '✵', accent: '梦境王座' }
+  ];
 
-const WEEKEND_SUN = {
-  morning: [
-    { id: 'cn-read-w2', name: '语文晨读（337模式）', detail: '大声朗读，15-20分钟', subject: 'cn' },
-    { id: 'cn-happy-w2', name: '快乐读书吧', detail: '书目：《青蛙洗衣店》，阅读 15分钟', subject: 'cn' },
-  ],
-  afternoon: [
-    { id: 'en-word-w2',  name: '单词抄写 + 默写', detail: '1-2年级单词，每天1个Unit，约10-15分钟', subject: 'en' },
-  ],
-  evening: [
-    { id: 'en-toon-w2',  name: '字母积木动画片', detail: '每天3集，约10分钟', subject: 'en' },
-    { id: 'en-market-w2', name: '乐读单词小超市', detail: '每天1个Day', subject: 'en' },
-  ]
-};
+  const REGULAR_TASKS = {
+    morning: [
+      { id: 'cn-read', name: '语文晨读（337模式）', detail: '大声朗读，15-20分钟。3类内容各读3天，7天一循环', subject: 'cn' },
+      { id: 'en-read', name: '英语晨读', detail: '学而思读本，大声朗读，10-15分钟', subject: 'en' },
+      { id: 'cn-happy', name: '快乐读书吧', detail: '书目：《青蛙洗衣店》，阅读15分钟，可读给外婆爷爷听', subject: 'cn' },
+      { id: 'cn-cibiao', name: '复习2年级生词表 + 词语表', detail: '每天1课，约10-15分钟', subject: 'cn' },
+      { id: 'cn-yiben', name: '《一本》三年级生词', detail: '每天1个单元，约10-15分钟', subject: 'cn' }
+    ],
+    afternoon: [
+      { id: 'cn-53', name: '53天天练', detail: '一天1课，写完并订正', subject: 'cn' },
+      { id: 'ma-xueba', name: '学霸', detail: '每天1课，20-40分钟，写完并订正', subject: 'ma' },
+      { id: 'en-pic', name: '乐读绘本', detail: '每天1课', subject: 'en' },
+      { id: 'en-word', name: '单词抄写 + 默写', detail: '1-2年级单词，每天1个Unit，约10-15分钟', subject: 'en' },
+      { id: 'ma-shugan', name: '数感训练', detail: '每天2页，约20分钟，做完并订正', subject: 'ma' }
+    ],
+    evening: [
+      { id: 'en-toon', name: '字母积木动画片', detail: '每天3集，约10分钟', subject: 'en' },
+      { id: 'en-market', name: '乐读单词小超市', detail: '每天1个Day', subject: 'en' },
+      { id: 'en-copy', name: '英语句子/课文抄写', detail: '二下课文，每周2次（周二 / 周四），15分钟', subject: 'en', tueThu: true }
+    ]
+  };
 
-// ============ STATE ============
-let selectedDate = new Date(); // today
-let calYear, calMonth;
+  const COURSE_TASKS = {
+    morning: [
+      { id: 'cn-read-c', name: '语文晨读（337模式）', detail: '大声朗读，20分钟', subject: 'cn' },
+      { id: 'en-read-c', name: '英语晨读', detail: '学而思读本，大声朗读，10分钟', subject: 'en' },
+      { id: 'en-class', name: '🏫 英语暑期课', detail: '2小时', subject: 'en' }
+    ],
+    afternoon: [
+      { id: 'cn-happy-c', name: '快乐读书吧', detail: '书目：《青蛙洗衣店》，阅读15分钟', subject: 'cn' },
+      { id: 'ma-class', name: '🏫 数学暑期课', detail: '2小时', subject: 'ma' },
+      { id: 'ma-hw', name: '数学课后作业', detail: '约20-30分钟，当天完成', subject: 'ma' },
+      { id: 'ma-shugan-c', name: '数感训练', detail: '每天1页，约10分钟，做完并订正', subject: 'ma' }
+    ],
+    evening: [
+      { id: 'en-hw', name: '英语课后作业', detail: '约40分钟，当天完成', subject: 'en' },
+      { id: 'en-toon-c', name: '字母积木动画片', detail: '每天3集，约10分钟', subject: 'en' },
+      { id: 'en-market-c', name: '乐读单词小超市', detail: '每天1个Day', subject: 'en' }
+    ]
+  };
 
-// ============ HELPERS ============
-function dateKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+  const WEEKEND_SAT = {
+    morning: [
+      { id: 'cn-read-w', name: '语文晨读（337模式）', detail: '大声朗读，15-20分钟', subject: 'cn' },
+      { id: 'en-read-w', name: '英语晨读', detail: '学而思读本，大声朗读，10-15分钟', subject: 'en' },
+      { id: 'cn-happy-w', name: '快乐读书吧', detail: '书目：《青蛙洗衣店》，阅读15分钟', subject: 'cn' },
+      { id: 'cn-cibiao-w', name: '复习2年级生词表 + 词语表', detail: '每天1课，约10-15分钟', subject: 'cn' }
+    ],
+    afternoon: [
+      { id: 'ma-shugan-w', name: '数感训练', detail: '每天1页，约10分钟，做完并订正', subject: 'ma' },
+      { id: 'en-word-w', name: '单词抄写 + 默写', detail: '1-2年级单词，每天1个Unit，约10-15分钟', subject: 'en' }
+    ],
+    evening: [
+      { id: 'en-toon-w', name: '字母积木动画片', detail: '每天3集，约10分钟', subject: 'en' },
+      { id: 'en-market-w', name: '乐读单词小超市', detail: '每天1个Day', subject: 'en' }
+    ]
+  };
 
-function isWeekend(d) { const day = d.getDay(); return day === 0 || day === 6; }
+  const WEEKEND_SUN = {
+    morning: [
+      { id: 'cn-read-w', name: '语文晨读（337模式）', detail: '大声朗读，15-20分钟', subject: 'cn' },
+      { id: 'en-read-w', name: '英语晨读', detail: '学而思读本，大声朗读，10-15分钟', subject: 'en' },
+      { id: 'cn-happy-w', name: '快乐读书吧', detail: '书目：《青蛙洗衣店》，阅读15分钟', subject: 'cn' },
+      { id: 'cn-cibiao-w', name: '复习2年级生词表 + 词语表', detail: '每天1课，约10-15分钟', subject: 'cn' }
+    ],
+    afternoon: [
+      { id: 'ma-shugan-w', name: '数感训练', detail: '每天1页，约10分钟，做完并订正', subject: 'ma' },
+      { id: 'en-word-w', name: '单词抄写 + 默写', detail: '1-2年级单词，每天1个Unit，约10-15分钟', subject: 'en' }
+    ],
+    evening: [
+      { id: 'en-toon-w', name: '字母积木动画片', detail: '每天3集，约10分钟', subject: 'en' },
+      { id: 'en-market-w', name: '乐读单词小超市', detail: '每天1个Day', subject: 'en' }
+    ]
+  };
 
-function isCoursePeriod(d) { return d >= COURSE_START && d <= COURSE_END; }
+  let selectedDate = new Date();
+  let libraryFilter = 'ALL';
+  let rewardState = loadRewardState();
 
-function isInPlan(d) { return d.getMonth() >= 6 && d.getMonth() <= 7 && d.getFullYear() === 2026; }
-
-function sameDay(a, b) { return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
-
-function getTaskList(d) {
-  if (isCoursePeriod(d)) return { tasks: COURSE_TASKS, mode: 'course' };
-  if (isWeekend(d)) {
-    if (d.getDay() === 6) return { tasks: WEEKEND_SAT, mode: 'weekend' };
-    return { tasks: WEEKEND_SUN, mode: 'weekend' };
-  }
-  return { tasks: REGULAR_TASKS, mode: 'regular' };
-}
-
-// ============ STORAGE ============
-function loadChecks() {
-  try { return JSON.parse(localStorage.getItem('summer_checks') || '{}'); }
-  catch(e) { return {}; }
-}
-function saveChecks(checks) {
-  localStorage.setItem('summer_checks', JSON.stringify(checks));
-}
-
-// ============ RENDER CALENDAR ============
-function renderCalendar() {
-  document.getElementById('monthLabel').textContent = `${calYear}年${calMonth+1}月`;
-
-  const firstDay = new Date(calYear, calMonth, 1);
-  const lastDay = new Date(calYear, calMonth+1, 0);
-  const startOffset = firstDay.getDay();
-  const totalDays = lastDay.getDate();
-  const prevLast = new Date(calYear, calMonth, 0).getDate();
-
-  const today = new Date();
-  const container = document.getElementById('calDays');
-  let html = '';
-
-  // Prev month fill
-  for (let i = startOffset-1; i >= 0; i--) {
-    html += `<div class="cal-day other-month">${prevLast - i}</div>`;
+  function dateKey(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   }
 
-  // Current month
-  for (let d = 1; d <= totalDays; d++) {
-    const date = new Date(calYear, calMonth, d);
-    let cls = 'cal-day';
-    if (sameDay(date, today)) cls += ' today';
-    if (sameDay(date, selectedDate)) cls += ' selected';
-    if (isCoursePeriod(date)) cls += ' course-period';
-    else if (isWeekend(date)) cls += ' weekend';
+  function parseDateKey(key) {
+    const [year, month, day] = key.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }
 
-    // Dots for plan overview
-    let dots = '';
-    if (isInPlan(date) && !isWeekend(date) && !isCoursePeriod(date)) {
-      dots = '<div class="dot-row"><span class="dot cn"></span><span class="dot cn"></span><span class="dot en"></span><span class="dot ma"></span></div>';
-    } else if (isCoursePeriod(date)) {
-      dots = '<div class="dot-row"><span class="dot en"></span><span class="dot ma"></span></div>';
-    } else if (isWeekend(date) && isInPlan(date)) {
-      dots = '<div class="dot-row"><span class="dot cn"></span><span class="dot en"></span></div>';
+  function sameDay(a, b) {
+    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  }
+
+  function diffDays(a, b) {
+    const x = new Date(a.getFullYear(), a.getMonth(), a.getDate()).getTime();
+    const y = new Date(b.getFullYear(), b.getMonth(), b.getDate()).getTime();
+    return Math.round((y - x) / (24 * 60 * 60 * 1000));
+  }
+
+  function isPlanDate(date) {
+    return date >= PLAN_START && date <= PLAN_END;
+  }
+
+  function isCoursePeriod(date) {
+    return date >= COURSE_START && date <= COURSE_END;
+  }
+
+  function isWeekend(date) {
+    return date.getDay() === 0 || date.getDay() === 6;
+  }
+
+  function getWeekStart(date) {
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const day = d.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    d.setDate(d.getDate() + diff);
+    return d;
+  }
+
+  function formatDate(date) {
+    const week = ['日', '一', '二', '三', '四', '五', '六'];
+    return `${date.getMonth() + 1}月${date.getDate()}日 星期${week[date.getDay()]}`;
+  }
+
+  function formatFullDate(date) {
+    const week = ['日', '一', '二', '三', '四', '五', '六'];
+    return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 星期${week[date.getDay()]}`;
+  }
+
+  function formatRange(start, end) {
+    return `${start.getMonth() + 1}月${start.getDate()}日 - ${end.getMonth() + 1}月${end.getDate()}日`;
+  }
+
+  function pickRandom(list) {
+    return list[Math.floor(Math.random() * list.length)];
+  }
+
+  function defaultRewardState() {
+    return {
+      dailyRewards: {},
+      streakRewards: {},
+      exchanges: []
+    };
+  }
+
+  function loadChecks() {
+    try {
+      return JSON.parse(localStorage.getItem(CHECKS_KEY) || '{}');
+    } catch (e) {
+      return {};
     }
-
-    html += `<div class="${cls}" onclick="selectDate(${calYear},${calMonth},${d})">${d}${dots}</div>`;
   }
 
-  // Next month fill
-  const remaining = 7 - ((startOffset + totalDays) % 7);
-  if (remaining < 7) {
-    for (let i = 1; i <= remaining; i++) {
-      html += `<div class="cal-day other-month">${i}</div>`;
+  function saveChecks(data) {
+    localStorage.setItem(CHECKS_KEY, JSON.stringify(data));
+  }
+
+  function loadRewardState() {
+    try {
+      const current = localStorage.getItem(REWARD_KEY);
+      const legacy = localStorage.getItem(LEGACY_REWARD_KEY);
+      const raw = JSON.parse(current || legacy || '{}');
+      return {
+        dailyRewards: raw.dailyRewards || {},
+        streakRewards: raw.streakRewards || {},
+        exchanges: Array.isArray(raw.exchanges) ? raw.exchanges : []
+      };
+    } catch (e) {
+      return defaultRewardState();
     }
   }
 
-  container.innerHTML = html;
-}
+  function saveRewardState() {
+    localStorage.setItem(REWARD_KEY, JSON.stringify(rewardState));
+  }
 
-function changeMonth(delta) {
-  calMonth += delta;
-  if (calMonth > 11) { calMonth = 0; calYear++; }
-  if (calMonth < 0) { calMonth = 11; calYear--; }
-  renderCalendar();
-}
+  function ensureDailyReward(key) {
+    if (!rewardState.dailyRewards[key]) {
+      rewardState.dailyRewards[key] = {
+        firstTaskAwarded: false,
+        fullAwarded: false,
+        firstQuote: ''
+      };
+    }
+    return rewardState.dailyRewards[key];
+  }
 
-function selectDate(y, m, d) {
-  selectedDate = new Date(y, m, d);
-  renderCalendar();
-  renderSchedule();
-}
+  function getTaskBundle(date) {
+    if (!isPlanDate(date)) {
+      return { mode: 'off', title: '计划外日期', tasks: { morning: [], afternoon: [], evening: [] } };
+    }
+    if (isCoursePeriod(date)) return { mode: 'course', title: '课程期间', tasks: COURSE_TASKS };
+    if (isWeekend(date)) return { mode: 'weekend', title: '周末减量', tasks: date.getDay() === 6 ? WEEKEND_SAT : WEEKEND_SUN };
+    return { mode: 'regular', title: '常规计划', tasks: REGULAR_TASKS };
+  }
 
-// ============ RENDER SCHEDULE ============
-function renderSchedule() {
-  const d = selectedDate;
-  const key = dateKey(d);
-  const { tasks, mode } = getTaskList(d);
-  const checks = loadChecks();
-  const dayChecks = checks[key] || {};
-
-  // Header date
-  const weekNames = ['日','一','二','三','四','五','六'];
-  document.getElementById('headerDate').textContent =
-    `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 星期${weekNames[d.getDay()]}`;
-
-  // Mode badge
-  let badgeHtml = '';
-  if (mode === 'course') badgeHtml = '<span class="mode-badge course">📅 课程期间 · 8月3日-16日</span>';
-  else if (mode === 'weekend') badgeHtml = '<span class="mode-badge weekend">🌿 周末减量日</span>';
-  else badgeHtml = '<span class="mode-badge regular">📖 常规计划</span>';
-
-  // Count stats
-  let totalTasks = 0, doneTasks = 0;
-  const periods = ['morning', 'afternoon', 'evening'];
-  const periodLabels = { morning: '🌅 上午', afternoon: '🌿 下午', evening: '🌙 晚上' };
-  const periodClasses = { morning: 'morning', afternoon: 'afternoon', evening: 'evening' };
-
-  let scheduleHtml = badgeHtml;
-
-  // Progress bar
-  periods.forEach(p => {
-    tasks[p].forEach(t => {
-      if (t.tueThu && (d.getDay() !== 2 && d.getDay() !== 4)) return;
-      totalTasks++;
-      if (dayChecks[t.id]) doneTasks++;
+  function getVisibleTasks(date) {
+    const bundle = getTaskBundle(date);
+    if (bundle.mode === 'off') return [];
+    const list = [];
+    ['morning', 'afternoon', 'evening'].forEach((period) => {
+      (bundle.tasks[period] || []).forEach((task) => {
+        if (task.tueThu && date.getDay() !== 2 && date.getDay() !== 4) return;
+        list.push({ ...task, period });
+      });
     });
-  });
+    return list;
+  }
 
-  const pct = totalTasks > 0 ? Math.round(doneTasks/totalTasks*100) : 0;
-  scheduleHtml += `
-    <div class="progress-bar">
-      <span style="font-size:13px;">今日进度</span>
-      <div class="progress-fill"><div class="progress-fill-inner" style="width:${pct}%"></div></div>
-      <span class="progress-text">${doneTasks}/${totalTasks}</span>
-    </div>`;
-
-  // Period blocks
-  periods.forEach(p => {
-    const periodTasks = tasks[p].filter(t => {
-      if (t.tueThu && (d.getDay() !== 2 && d.getDay() !== 4)) return false;
-      return true;
+  function getDayProgress(dateOrKey, checksMap) {
+    const checks = checksMap || loadChecks();
+    const key = typeof dateOrKey === 'string' ? dateOrKey : dateKey(dateOrKey);
+    const date = typeof dateOrKey === 'string' ? parseDateKey(dateOrKey) : dateOrKey;
+    const tasks = getVisibleTasks(date);
+    const dayChecks = checks[key] || {};
+    let done = 0;
+    tasks.forEach((task) => {
+      if (dayChecks[task.id]) done += 1;
     });
-    if (periodTasks.length === 0) return;
+    return {
+      key,
+      total: tasks.length,
+      done,
+      pct: tasks.length ? Math.round(done / tasks.length * 100) : 0,
+      isFull: tasks.length > 0 && done === tasks.length,
+      dayChecks,
+      tasks
+    };
+  }
 
-    scheduleHtml += `<div class="period-block">
-      <div class="period-title ${periodClasses[p]}">${periodLabels[p]}</div>
-      <ul class="task-list">`;
+  function getQualifiedFullKeys(checksMap) {
+    const checks = checksMap || loadChecks();
+    return Object.keys(checks)
+      .filter((key) => isPlanDate(parseDateKey(key)) && getDayProgress(key, checks).isFull)
+      .sort();
+  }
 
-    periodTasks.forEach(t => {
-      const checked = dayChecks[t.id] ? 'checked' : '';
-      const doneClass = dayChecks[t.id] ? 'done' : '';
-      const subCls = 'badge-' + t.subject;
-      const subLabel = { cn:'语文', en:'英语', ma:'数学' }[t.subject] || '';
-      scheduleHtml += `
-        <li class="task-item ${doneClass}" id="item-${t.id}">
-          <input type="checkbox" ${checked} onchange="toggleTask('${key}','${t.id}',this)">
-          <div class="task-info">
-            <div class="task-name">${t.name}</div>
-            <div class="task-detail">${t.detail}</div>
+  function getCheckedKeys(checksMap) {
+    const checks = checksMap || loadChecks();
+    return Object.keys(checks)
+      .filter((key) => isPlanDate(parseDateKey(key)) && getDayProgress(key, checks).done > 0)
+      .sort();
+  }
+
+  function computeCheckinStreak() {
+    const keys = getCheckedKeys();
+    if (!keys.length) return 0;
+    let streak = 0;
+    let prev = null;
+    keys.forEach((key) => {
+      if (!prev) streak = 1;
+      else if (diffDays(parseDateKey(prev), parseDateKey(key)) === 1) streak += 1;
+      else streak = 1;
+      prev = key;
+    });
+    return streak;
+  }
+
+  function rebuildStreakRewards() {
+    const qualified = getQualifiedFullKeys();
+    const oldMap = rewardState.streakRewards || {};
+    const fresh = {};
+    let streak = 0;
+    let prevKey = null;
+
+    qualified.forEach((key) => {
+      if (prevKey && diffDays(parseDateKey(prevKey), parseDateKey(key)) === 1) streak += 1;
+      else streak = 1;
+
+      if (streak === 3 || streak === 7) {
+        const existing = oldMap[key];
+        fresh[key] = existing && existing.milestone === streak ? existing : {
+          milestone: streak,
+          cardId: drawMilestoneCard(streak)
+        };
+      }
+
+      if (streak === 7) {
+        streak = 0;
+        prevKey = null;
+      } else {
+        prevKey = key;
+      }
+    });
+
+    rewardState.streakRewards = fresh;
+  }
+
+  function syncRewardFromChecks() {
+    const checks = loadChecks();
+    let changed = false;
+    Object.keys(checks).forEach((key) => {
+      if (!isPlanDate(parseDateKey(key))) return;
+      const progress = getDayProgress(key, checks);
+      const reward = ensureDailyReward(key);
+      if (progress.done > 0 && !reward.firstTaskAwarded) {
+        reward.firstTaskAwarded = true;
+        reward.firstQuote = reward.firstQuote || pickRandom(DAILY_FIRST_QUOTES);
+        changed = true;
+      }
+      if (progress.isFull && !reward.fullAwarded) {
+        reward.fullAwarded = true;
+        changed = true;
+      }
+    });
+    const before = JSON.stringify(rewardState.streakRewards || {});
+    rebuildStreakRewards();
+    const after = JSON.stringify(rewardState.streakRewards || {});
+    if (changed || before !== after) saveRewardState();
+  }
+
+  function getTotalStars() {
+    let earned = 0;
+    Object.values(rewardState.dailyRewards).forEach((entry) => {
+      if (entry.firstTaskAwarded) earned += 1;
+      if (entry.fullAwarded) earned += 2;
+    });
+    const spent = rewardState.exchanges.reduce((sum, item) => sum + Number(item.cost || 0), 0);
+    return earned - spent;
+  }
+
+  function getAllCardRecords() {
+    const streakRecords = Object.entries(rewardState.streakRewards || {}).map(([dateStr, info]) => ({
+      type: 'streak',
+      source: info.milestone === 3 ? '连续3天满进度奖励' : '连续7天满进度奖励',
+      dateKey: dateStr,
+      cardId: info.cardId,
+      milestone: info.milestone,
+      timestamp: `${dateStr}T${info.milestone === 3 ? '19:00:00' : '20:00:00'}`
+    }));
+    const exchangeRecords = (rewardState.exchanges || []).map((item) => ({
+      type: 'exchange',
+      source: item.source || `${item.rarity} 卡包兑换`,
+      dateKey: item.dateKey,
+      cardId: item.cardId,
+      cost: item.cost,
+      milestone: 0,
+      timestamp: item.timestamp || `${item.dateKey}T12:00:00`
+    }));
+    return [...streakRecords, ...exchangeRecords].sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1));
+  }
+
+  function getOwnedCardCounts() {
+    const counts = {};
+    getAllCardRecords().forEach((record) => {
+      counts[record.cardId] = (counts[record.cardId] || 0) + 1;
+    });
+    return counts;
+  }
+
+  function getUnlockedKindsCount() {
+    return Object.keys(getOwnedCardCounts()).length;
+  }
+
+  function getOwnedTotalCount() {
+    return getAllCardRecords().length;
+  }
+
+  function drawCardByRarity(rarity) {
+    const counts = getOwnedCardCounts();
+    const pool = CARD_POOL.filter((card) => card.rarity === rarity);
+    const unowned = pool.filter((card) => !counts[card.id]);
+    return pickRandom(unowned.length ? unowned : pool).id;
+  }
+
+  function drawMilestoneCard(milestone) {
+    const roll = Math.random() * 100;
+    if (milestone === 3) return drawCardByRarity(roll < 70 ? 'R' : 'SR');
+    if (roll < 20) return drawCardByRarity('R');
+    if (roll < 70) return drawCardByRarity('SR');
+    return drawCardByRarity('SSR');
+  }
+
+  function rarityClass(rarity) {
+    return rarity === 'SSR' ? 'ssr' : rarity === 'SR' ? 'sr' : 'r';
+  }
+
+  function getCard(cardId) {
+    return CARD_POOL.find((item) => item.id === cardId);
+  }
+
+function buildPonySvg(card) {
+  const c = card.colors;
+  const rarity = card.rarity;
+  const decoMap = {
+    'r-apple-glow': { icon: '🍎', orbit: 'none', frame: 'none', background: 'apple-clean', pedestal: 'none', headpiece: 'none', tail: 'basic' },
+    'r-cloud-bubble': { icon: '☁', orbit: 'none', frame: 'none', background: 'cloud-clean', pedestal: 'none', headpiece: 'none', tail: 'basic' },
+    'r-mint-hop': { icon: '◆', orbit: 'mint', frame: 'spark', background: 'mint-soft', pedestal: 'none', headpiece: 'none', tail: 'basic' },
+    'r-sea-star': { icon: '✧', orbit: 'star', frame: 'ribbon', background: 'sea-soft', pedestal: 'none', headpiece: 'none', tail: 'basic' },
+    'r-candy-book': { icon: '❤', orbit: 'heart', frame: 'hearts', background: 'candy-soft', pedestal: 'none', headpiece: 'none', tail: 'basic' },
+    'r-rain-step': { icon: '✿', orbit: 'rain', frame: 'drops', background: 'rain-soft', pedestal: 'none', headpiece: 'none', tail: 'basic' },
+    'r-lemon-note': { icon: '♫', orbit: 'note', frame: 'notes', background: 'note-soft', pedestal: 'none', headpiece: 'none', tail: 'basic' },
+    'sr-rainbow-dash': { icon: '⚡', orbit: 'rainbow', frame: 'flare', background: 'rainbow-rich', pedestal: 'rainbow-band', headpiece: 'none', tail: 'basic' },
+    'sr-purple-magic': { icon: '✪', orbit: 'magic', frame: 'gems', background: 'magic-rich', pedestal: 'magic-band', headpiece: 'none', tail: 'basic' },
+    'sr-moon-berry': { icon: '☾', orbit: 'moon', frame: 'stars', background: 'moon-rich', pedestal: 'moon-band', headpiece: 'none', tail: 'basic' },
+    'sr-aurora-glow': { icon: '✺', orbit: 'aurora', frame: 'aurora', background: 'aurora-rich', pedestal: 'aurora-band', headpiece: 'none', tail: 'basic' },
+    'ssr-sun-crown': { icon: '♛', orbit: 'sun', frame: 'royal', background: 'sun-palace', pedestal: 'sun-band', headpiece: 'sun-tiara', tail: 'royal-tail' },
+    'ssr-galaxy-dream': { icon: '✵', orbit: 'galaxy', frame: 'cosmic', background: 'galaxy-rich', pedestal: 'comet-band', headpiece: 'star-circlet', tail: 'galaxy-tail' }
+  };
+  const deco = decoMap[card.id] || {
+    icon: card.mark,
+    orbit: rarity === 'SSR' ? 'galaxy' : rarity === 'SR' ? 'magic' : 'leaf',
+    frame: rarity === 'SSR' ? 'royal' : rarity === 'SR' ? 'gems' : 'dots',
+    background: rarity === 'SSR' ? 'galaxy-rich' : rarity === 'SR' ? 'magic-rich' : 'apple-soft',
+    pedestal: rarity === 'SSR' ? 'comet-band' : rarity === 'SR' ? 'magic-band' : 'none',
+    headpiece: rarity === 'SSR' ? 'star-circlet' : 'none',
+    tail: rarity === 'SSR' ? 'galaxy-tail' : 'basic'
+  };
+
+  function backdrop() {
+    switch (deco.background) {
+      case 'apple-clean':
+        return `<rect x="32" y="34" width="112" height="128" rx="32" fill="rgba(255,188,205,.62)"/><rect x="40" y="44" width="96" height="108" rx="28" fill="rgba(255,236,191,.34)"/><path d="M52 156c18-8 36-9 56-4 10 2 20 2 30 0" fill="none" stroke="rgba(255,151,185,.36)" stroke-width="8" stroke-linecap="round"/><path d="M106 50c8-9 17-13 27-12 1 11-3 20-11 26-9 0-17-5-24-15 2-4 5-7 8-9z" fill="rgba(255,112,156,.52)"/><circle cx="71" cy="58" r="13" fill="rgba(255,224,132,.86)"/>`;
+      case 'cloud-clean':
+        return `<rect x="32" y="34" width="112" height="128" rx="32" fill="rgba(180,223,255,.62)"/><rect x="40" y="44" width="96" height="108" rx="28" fill="rgba(225,218,255,.34)"/><path d="M52 156c18-7 36-8 56-5 10 2 20 1 30-2" fill="none" stroke="rgba(153,205,255,.42)" stroke-width="8" stroke-linecap="round"/><ellipse cx="72" cy="57" rx="17" ry="9" fill="rgba(255,255,255,.82)"/><ellipse cx="111" cy="51" rx="19" ry="10" fill="rgba(255,255,255,.72)"/>`;
+      case 'apple-soft':
+        return `<rect x="14" y="18" width="140" height="156" rx="36" fill="rgba(255,138,176,.4)"/><rect x="22" y="28" width="124" height="134" rx="32" fill="rgba(255,221,139,.28)"/><path d="M18 164c18-8 39-10 62-5 19 4 38 4 56 0 11-2 21-5 30-10v25H18z" fill="rgba(148,223,160,.42)"/><circle cx="36" cy="40" r="14" fill="rgba(255,236,165,.8)"/><path d="M116 42c8-8 16-11 24-10 1 10-2 18-9 24-9 1-17-4-24-14 3-3 6-6 9-8z" fill="rgba(255,126,164,.48)"/>`;
+      case 'cloud-soft':
+        return `<rect x="14" y="18" width="140" height="156" rx="36" fill="rgba(133,198,255,.36)"/><rect x="22" y="28" width="124" height="134" rx="32" fill="rgba(214,201,255,.24)"/><path d="M18 164c19-8 39-10 61-8 19 2 38 1 56-4 11-4 21-8 29-14v26H18z" fill="rgba(174,216,255,.4)"/><ellipse cx="46" cy="40" rx="18" ry="9" fill="rgba(255,255,255,.72)"/><ellipse cx="126" cy="34" rx="21" ry="10" fill="rgba(255,255,255,.58)"/>`;
+      case 'mint-soft':
+        return `<path d="M18 164c21-8 43-10 67-6 18 4 36 3 55-2v24H18z" fill="rgba(146,228,201,.16)"/><path d="M32 50c9-11 21-13 36-8-6 10-16 15-31 15" fill="rgba(255,255,255,.22)"/><path d="M116 46c7 9 8 16 2 22-9-4-13-10-13-19" fill="rgba(116,205,255,.16)"/>`;
+      case 'sea-soft':
+        return `<path d="M18 165c18-7 39-8 62-5 20 3 41 3 64-1v22H18z" fill="rgba(124,206,255,.18)"/><path d="M18 152c20-7 40-9 61-5 22 3 43 3 64-1" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="4" stroke-linecap="round"/><text x="124" y="48" font-size="13" font-weight="700" fill="rgba(255,255,255,.42)">✧</text>`;
+      case 'candy-soft':
+        return `<rect x="24" y="30" width="28" height="56" rx="10" fill="rgba(255,255,255,.12)"/><path d="M26 160c20-6 42-7 66-4 17 3 34 3 51 0" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="5" stroke-linecap="round"/><path d="M124 42c-5-6 2-14 9-10 2 2 4 4 5 6 1-2 2-4 5-6 7-4 14 4 9 10-4 5-14 11-14 11s-10-6-14-11z" fill="rgba(255,156,194,.24)"/>`;
+      case 'rain-soft':
+        return `<g stroke="rgba(255,255,255,.24)" stroke-width="3" stroke-linecap="round"><path d="M34 24l-5 15"/><path d="M60 18l-5 16"/><path d="M120 24l-5 15"/><path d="M146 18l-5 16"/></g><ellipse cx="128" cy="164" rx="25" ry="8" fill="rgba(118,205,255,.18)"/>`;
+      case 'note-soft':
+        return `<rect x="28" y="48" width="42" height="50" rx="10" fill="rgba(255,255,255,.12)"/><path d="M38 62h20M38 74h17M38 86h22" stroke="rgba(255,216,122,.48)" stroke-width="3" stroke-linecap="round"/><text x="124" y="48" font-size="14" font-weight="700" fill="rgba(255,255,255,.4)">♫</text>`;
+      case 'rainbow-rich':
+        return `<path d="M18 156c18 9 39 13 64 13 24 0 46-4 66-13" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="6" stroke-linecap="round"/><path d="M22 44c15-12 34-17 55-16 18 1 34 7 48 16" fill="none" stroke="rgba(255,132,188,.54)" stroke-width="7" stroke-linecap="round"/><path d="M28 49c13-9 30-13 47-12 15 1 29 5 42 12" fill="none" stroke="rgba(109,182,255,.48)" stroke-width="6" stroke-linecap="round"/><circle cx="44" cy="54" r="10" fill="rgba(255,255,255,.2)"/><circle cx="136" cy="60" r="8" fill="rgba(255,255,255,.16)"/>`;
+      case 'magic-rich':
+        return `<path d="M26 58c11-24 31-31 57-19-5 18-24 29-57 19z" fill="rgba(203,171,255,.24)"/><path d="M120 34l4 9 10 2-8 6 3 9-9-4-8 4 3-9-8-6 10-2z" fill="rgba(255,255,255,.38)"/><path d="M36 158c18-8 39-10 61-6 18 4 34 4 49 0" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="5" stroke-linecap="round"/>`;
+      case 'moon-rich':
+        return `<circle cx="42" cy="42" r="16" fill="rgba(255,244,178,.48)"/><circle cx="49" cy="38" r="14" fill="url(#bg-${card.id})" opacity=".95"/><text x="124" y="46" font-size="13" font-weight="700" fill="rgba(255,255,255,.54)">✶</text><path d="M24 160c20-9 40-10 61-6 20 3 40 3 61-2" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="5" stroke-linecap="round"/>`;
+      case 'aurora-rich':
+        return `<path d="M22 56c21-17 44-21 71-10" fill="none" stroke="rgba(110,232,198,.46)" stroke-width="8" stroke-linecap="round"/><path d="M30 72c19-10 39-13 61-7" fill="none" stroke="rgba(126,188,255,.4)" stroke-width="6" stroke-linecap="round"/><path d="M18 164c20-7 40-8 60-5 19 3 39 3 60-2v20H18z" fill="rgba(255,255,255,.08)"/>`;
+      case 'sun-palace':
+        return `<circle cx="40" cy="42" r="16" fill="rgba(255,225,124,.5)"/><path d="M22 160c20-8 42-9 65-5 18 4 37 3 57-1v22H22z" fill="rgba(255,228,156,.18)"/><path d="M54 44l10-10 10 10 10-10 10 10 10-10 10 10" fill="none" stroke="rgba(255,241,196,.42)" stroke-width="4" stroke-linecap="round"/><path d="M32 26c14-9 31-12 51-11 18 1 33 5 47 11" fill="none" stroke="rgba(255,243,210,.2)" stroke-width="4" stroke-linecap="round"/>`;
+      case 'galaxy-rich':
+        return `<circle cx="38" cy="38" r="6" fill="rgba(255,255,255,.62)"/><circle cx="54" cy="56" r="3" fill="rgba(255,214,115,.5)"/><circle cx="132" cy="40" r="15" fill="rgba(255,208,122,.18)"/><ellipse cx="132" cy="40" rx="22" ry="7" fill="none" stroke="rgba(255,234,183,.3)" stroke-width="3" transform="rotate(-16 132 40)"/><path d="M22 160c21-9 42-10 64-7 20 4 39 3 58-2" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="5" stroke-linecap="round"/>`;
+      default:
+        return '';
+    }
+  }
+
+  function orbitShapes() {
+    switch (deco.orbit) {
+      case 'none':
+        return ``;
+      case 'leaf':
+        return `<ellipse cx="42" cy="44" rx="12" ry="6" fill="rgba(126,214,156,.44)" transform="rotate(-24 42 44)"/><ellipse cx="124" cy="46" rx="11" ry="5" fill="rgba(255,152,184,.28)" transform="rotate(24 124 46)"/>`;
+      case 'bubble':
+        return `<circle cx="44" cy="46" r="8" fill="rgba(255,255,255,.36)"/><circle cx="124" cy="40" r="7" fill="rgba(255,255,255,.28)"/><circle cx="118" cy="56" r="4" fill="rgba(255,255,255,.24)"/>`;
+      case 'mint':
+        return `<path d="M36 54c10-13 18-16 29-13-7 11-16 16-29 13z" fill="rgba(124,231,199,.36)"/><path d="M126 38c7 9 8 16 2 24-8-4-11-10-2-24z" fill="rgba(110,205,255,.28)"/>`;
+      case 'star':
+        return `<path d="M40 48l4 8 8 2-6 5 2 8-8-4-7 4 2-8-6-5 8-2z" fill="rgba(255,239,143,.52)"/><circle cx="124" cy="44" r="6" fill="rgba(255,255,255,.24)"/>`;
+      case 'heart':
+        return `<path d="M42 52c-5-6 2-14 9-10 2 2 4 4 5 6 1-2 2-4 5-6 7-4 14 4 9 10-4 5-14 11-14 11s-10-6-14-11z" fill="rgba(255,145,189,.44)"/><circle cx="124" cy="46" r="5" fill="rgba(255,245,179,.24)"/>`;
+      case 'rain':
+        return `<path d="M42 38c7 9 8 15 0 22-8-7-7-13 0-22z" fill="rgba(120,210,255,.42)"/><path d="M124 42c5 7 6 13 0 18-6-5-5-11 0-18z" fill="rgba(168,154,255,.34)"/>`;
+      case 'note':
+        return `<text x="40" y="50" font-size="17" font-weight="700" fill="rgba(255,213,95,.62)">♪</text><text x="118" y="46" font-size="14" font-weight="700" fill="rgba(255,153,207,.52)">♫</text>`;
+      case 'rainbow':
+        return `<path d="M24 58c10-18 29-28 49-28 20 0 39 10 49 28" fill="none" stroke="rgba(255,124,176,.48)" stroke-width="6" stroke-linecap="round"/><path d="M30 62c9-12 25-19 43-19 18 0 34 7 43 19" fill="none" stroke="rgba(108,171,255,.42)" stroke-width="5" stroke-linecap="round"/>`;
+      case 'magic':
+        return `<path d="M34 62c8-24 26-31 48-19-3 17-20 27-48 19z" fill="rgba(201,165,255,.28)"/><text x="120" y="48" font-size="17" font-weight="700" fill="rgba(255,255,255,.66)">✦</text>`;
+      case 'moon':
+        return `<path d="M42 52c10-14 9-26 0-36 15 1 27 13 27 28 0 13-9 23-23 27 6-5 10-11 10-18 0-7-4-13-14-19z" fill="rgba(255,247,177,.48)"/><circle cx="126" cy="44" r="5" fill="rgba(255,255,255,.42)"/>`;
+      case 'aurora':
+        return `<path d="M28 58c20-18 44-22 73-10" fill="none" stroke="rgba(109,233,199,.42)" stroke-width="7" stroke-linecap="round"/><path d="M38 70c18-10 39-13 61-8" fill="none" stroke="rgba(126,188,255,.36)" stroke-width="5" stroke-linecap="round"/>`;
+      case 'sun':
+        return `<circle cx="38" cy="42" r="13" fill="rgba(255,222,112,.48)"/><g stroke="rgba(255,233,173,.62)" stroke-width="3" stroke-linecap="round"><path d="M38 18v8"/><path d="M38 58v8"/><path d="M14 42h8"/><path d="M54 42h8"/></g>`;
+      case 'galaxy':
+        return `<ellipse cx="40" cy="42" rx="19" ry="10" fill="none" stroke="rgba(255,221,120,.46)" stroke-width="3" transform="rotate(-20 40 42)"/><circle cx="126" cy="42" r="5" fill="rgba(255,255,255,.52)"/><circle cx="117" cy="56" r="3" fill="rgba(191,166,255,.46)"/>`;
+      default:
+        return '';
+    }
+  }
+
+  function frameDeco() {
+    switch (deco.frame) {
+      case 'none':
+        return ``;
+      case 'bubbles':
+        return `<circle cx="30" cy="166" r="6" fill="rgba(255,255,255,.28)"/><circle cx="136" cy="160" r="5" fill="rgba(255,255,255,.22)"/>`;
+      case 'spark':
+        return `<path d="M26 164l4 8 9 1-7 6 2 9-8-5-8 5 2-9-7-6 9-1z" fill="rgba(255,243,143,.44)"/>`;
+      case 'ribbon':
+        return `<path d="M126 156c11 2 15 10 14 24-11 1-20-8-14-24z" fill="rgba(255,162,206,.34)"/>`;
+      case 'hearts':
+        return `<path d="M124 170c-4-5 1-11 6-8 2 1 2 3 3 4 1-1 1-3 3-4 5-3 10 3 6 8-4 4-9 7-9 7s-5-3-9-7z" fill="rgba(255,181,208,.46)"/>`;
+      case 'drops':
+        return `<path d="M132 160c6 7 8 14 0 22-8-8-6-15 0-22z" fill="rgba(121,215,255,.34)"/>`;
+      case 'notes':
+        return `<text x="126" y="176" font-size="16" font-weight="700" fill="rgba(255,210,110,.56)">♫</text>`;
+      case 'flare':
+        return `<path d="M22 168c12-10 27-12 44-6" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="4" stroke-linecap="round"/><path d="M102 170c10-9 23-12 38-8" fill="none" stroke="rgba(255,255,255,.42)" stroke-width="4" stroke-linecap="round"/>`;
+      case 'gems':
+        return `<path d="M26 162l10-8 10 8-10 16z" fill="rgba(255,255,255,.34)"/><path d="M122 162l10-8 10 8-10 16z" fill="rgba(255,210,252,.28)"/>`;
+      case 'stars':
+        return `<text x="24" y="174" font-size="15" font-weight="700" fill="rgba(255,255,255,.62)">✦</text><text x="126" y="164" font-size="12" font-weight="700" fill="rgba(255,233,156,.58)">✶</text>`;
+      case 'aurora':
+        return `<path d="M18 170c20-10 40-10 60 0" fill="none" stroke="rgba(109,233,199,.4)" stroke-width="4" stroke-linecap="round"/><path d="M94 170c14-9 28-10 42-2" fill="none" stroke="rgba(126,188,255,.36)" stroke-width="4" stroke-linecap="round"/>`;
+      case 'royal':
+        return `<path d="M20 170c26-18 48-18 72 0" fill="none" stroke="rgba(255,223,123,.56)" stroke-width="5" stroke-linecap="round"/><circle cx="132" cy="168" r="6" fill="rgba(255,238,186,.56)"/>`;
+      case 'cosmic':
+        return `<ellipse cx="40" cy="168" rx="18" ry="8" fill="none" stroke="rgba(255,214,115,.5)" stroke-width="3" transform="rotate(-15 40 168)"/><circle cx="128" cy="168" r="4" fill="rgba(255,255,255,.56)"/>`;
+      default:
+        return `<circle cx="28" cy="170" r="4" fill="rgba(255,255,255,.28)"/><circle cx="132" cy="164" r="4" fill="rgba(255,255,255,.22)"/>`;
+    }
+  }
+
+  function pedestalMarkup() {
+    switch (deco.pedestal) {
+      case 'rainbow-band':
+        return `<g opacity=".9"><path d="M10 150c12-9 28-14 48-14 20 0 36 5 48 14" fill="none" stroke="rgba(255,122,179,.58)" stroke-width="7" stroke-linecap="round"/><path d="M16 154c10-6 24-10 42-10 18 0 32 4 42 10" fill="none" stroke="rgba(111,181,255,.54)" stroke-width="5" stroke-linecap="round"/></g>`;
+      case 'magic-band':
+        return `<g opacity=".9"><rect x="14" y="138" width="88" height="18" rx="9" fill="rgba(177,134,255,.34)"/><path d="M22 147h72" stroke="rgba(255,232,171,.5)" stroke-width="3" stroke-linecap="round"/><text x="58" y="150" text-anchor="middle" font-size="12" font-weight="700" fill="rgba(255,255,255,.74)">✦</text></g>`;
+      case 'moon-band':
+        return `<g opacity=".92"><path d="M24 148c10-8 22-12 34-12 14 0 25 5 34 14" fill="rgba(255,245,177,.26)"/><path d="M36 146c12-5 24-5 36 0" fill="none" stroke="rgba(255,255,255,.44)" stroke-width="4" stroke-linecap="round"/></g>`;
+      case 'aurora-band':
+        return `<g opacity=".9"><path d="M12 150c17-8 33-10 50-8 14 2 29 1 46-3" fill="none" stroke="rgba(109,233,199,.56)" stroke-width="6" stroke-linecap="round"/><path d="M16 156c14-5 29-7 45-5 12 2 25 1 38-2" fill="none" stroke="rgba(126,188,255,.48)" stroke-width="4" stroke-linecap="round"/></g>`;
+      case 'sun-band':
+        return `<g opacity=".92"><ellipse cx="34" cy="148" rx="18" ry="8" fill="rgba(255,246,204,.72)"/><ellipse cx="58" cy="144" rx="28" ry="10" fill="rgba(255,240,184,.68)"/><ellipse cx="84" cy="148" rx="18" ry="7" fill="rgba(255,235,176,.62)"/></g>`;
+      case 'comet-band':
+        return `<g opacity=".92"><ellipse cx="58" cy="148" rx="42" ry="11" fill="rgba(143,121,255,.22)"/><ellipse cx="58" cy="148" rx="52" ry="15" fill="none" stroke="rgba(255,223,123,.38)" stroke-width="4" transform="rotate(-10 58 148)"/></g>`;
+      default:
+        return '';
+    }
+  }
+
+  function headpieceMarkup() {
+    switch (deco.headpiece) {
+      case 'sun-tiara':
+        return `<path d="M76 22l7-8 8 6 8-8 8 8" fill="none" stroke="rgba(255,244,194,.94)" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="91" cy="20" r="4" fill="rgba(255,232,150,.94)"/>`;
+      case 'star-circlet':
+        return `<path d="M76 24c7-7 16-11 27-11 10 0 19 4 26 11" fill="none" stroke="rgba(255,239,203,.88)" stroke-width="4" stroke-linecap="round"/><text x="101" y="20" text-anchor="middle" font-size="11" font-weight="700" fill="rgba(255,255,255,.94)">✦</text>`;
+      default:
+        return '';
+    }
+  }
+
+  function tailMarkup() {
+    switch (deco.tail) {
+      case 'royal-tail':
+        return `<path d="M28 116c-18 8-28 24-24 39 4 14 17 22 35 22-12-5-18-11-18-19 11 3 22-1 30-10-15-2-22-11-23-32z" fill="url(#mane-${card.id})" opacity=".98"/><path d="M14 138c8 6 16 8 24 7" fill="none" stroke="rgba(255,233,162,.58)" stroke-width="3" stroke-linecap="round"/><circle cx="18" cy="152" r="2.5" fill="rgba(255,242,201,.72)"/>`;
+      case 'galaxy-tail':
+        return `<path d="M26 112c-20 7-31 24-27 42 4 17 18 27 38 27-13-6-19-14-18-23 12 5 24 2 34-8-17-3-24-13-27-38z" fill="url(#mane-${card.id})" opacity="1"/><circle cx="10" cy="144" r="3" fill="rgba(255,255,255,.62)"/><circle cx="20" cy="160" r="2" fill="rgba(255,223,123,.58)"/><path d="M18 134c8 3 14 3 20 0" fill="none" stroke="rgba(188,176,255,.5)" stroke-width="2.5" stroke-linecap="round"/>`;
+      default:
+        return `<path d="M30 118c-18 8-27 22-24 37 4 14 16 21 32 21-10-5-16-10-16-18 11 3 21 0 28-8-14-2-20-10-20-32z" fill="url(#mane-${card.id})" opacity=".95"/>`;
+    }
+  }
+
+  const aura = rarity === 'SSR'
+    ? '<circle cx="90" cy="92" r="58" fill="rgba(255,231,160,.26)"/><circle cx="90" cy="92" r="70" fill="none" stroke="rgba(255,240,205,.42)" stroke-width="3" stroke-dasharray="10 8"/>'
+    : rarity === 'SR'
+      ? '<circle cx="90" cy="94" r="50" fill="rgba(255,255,255,.2)"/><circle cx="90" cy="94" r="60" fill="none" stroke="rgba(255,255,255,.24)" stroke-width="2.5" stroke-dasharray="8 7"/>'
+      : '<circle cx="90" cy="98" r="44" fill="rgba(255,255,255,.12)"/>';
+  const forelock = '<path d="M72 20l8-18 8 17" fill="none" stroke="#ffe9b8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>';
+
+  return `
+    <svg viewBox="0 0 180 210" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <linearGradient id="bg-${card.id}" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="${c.a}"/>
+          <stop offset="55%" stop-color="${c.b}"/>
+          <stop offset="100%" stop-color="${c.c}"/>
+        </linearGradient>
+        <linearGradient id="mane-${card.id}" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="${c.mane1}"/>
+          <stop offset="100%" stop-color="${c.mane2}"/>
+        </linearGradient>
+      </defs>
+      <rect x="14" y="12" width="152" height="186" rx="28" fill="url(#bg-${card.id})" opacity=".92"/>
+      ${backdrop()}
+      ${aura}
+      ${orbitShapes()}
+      ${frameDeco()}
+      <g transform="translate(32 18)">
+        <ellipse cx="58" cy="152" rx="52" ry="16" fill="rgba(255,255,255,.16)"/>
+        ${pedestalMarkup()}
+        ${tailMarkup()}
+        <path d="M81 89c20-18 27-44 23-61-22 5-44 20-54 41 4 11 15 18 31 20z" fill="rgba(255,255,255,.28)"/>
+        <path d="M45 145c-19 0-33-12-38-28l-8-35c-3-11 3-23 15-27l54-12c17-4 35 4 43 20l11 21c12 23-3 52-29 55l-48 6z" fill="${c.body}"/>
+        <ellipse cx="65" cy="118" rx="28" ry="17" fill="rgba(255,255,255,.1)"/>
+        <path d="M88 38c19 4 34 19 35 39 1 20-11 38-31 43-21 6-42-6-49-26-6-20 1-41 20-49 8-4 16-6 25-7z" fill="${c.body}"/>
+        ${forelock}
+        ${headpieceMarkup()}
+        <path d="M118 55c-8-20-25-33-52-38 5 13 1 24-7 34 13 9 35 14 59 4z" fill="url(#mane-${card.id})"/>
+        <path d="M64 84c-15 14-20 31-16 52 17-8 33-5 43 6 5-18 1-39-27-58z" fill="url(#mane-${card.id})"/>
+        <circle cx="90" cy="70" r="7.5" fill="#4d4269"/>
+        <circle cx="92.5" cy="67.5" r="2.2" fill="#fff"/>
+        <path d="M103 82c7 5 12 5 18 0" fill="none" stroke="#f07aa8" stroke-width="4" stroke-linecap="round"/>
+        <g transform="translate(50 108)">
+          <path d="M0-15l4 8 9 2-7 7 2 10-8-5-9 5 3-10-7-7 9-2z" fill="#ffd968"/>
+          <circle cx="25" cy="2" r="17" fill="rgba(255,255,255,.18)"/>
+          <text x="25" y="7" text-anchor="middle" font-size="20" font-weight="700" fill="#fff8ff">${deco.icon}</text>
+        </g>
+      </g>
+    </svg>`;
+}
+
+
+
+  function buildCardTile(card, count, context = 'library') {
+    const owned = count > 0;
+    const cls = rarityClass(card.rarity);
+    const seriesCode = `MLP-${card.rarity}-${card.id.slice(-3).toUpperCase()}`;
+    const unlockCost = card.rarity === 'SR' ? 12 : card.rarity === 'R' ? 3 : null;
+    if (!owned) {
+      const canAttemptUnlock = context === 'library';
+      const enoughStars = unlockCost ? getTotalStars() >= unlockCost : false;
+      const stateClass = unlockCost ? (enoughStars ? 'can-unlock' : 'insufficient') : 'insufficient';
+      const unlockAttr = canAttemptUnlock ? `onclick="attemptUnlockCard('${card.id}')"` : '';
+      return `
+        <div class="pony-card ${cls} ${canAttemptUnlock ? `locked ${stateClass}` : ''}" ${unlockAttr}>
+          <div class="pony-card-inner">
+            <div class="pony-card-back">
+              <div class="card-back-face ${cls}">
+                <span class="back-corner tl"></span>
+                <span class="back-corner tr"></span>
+                <span class="back-corner bl"></span>
+                <span class="back-corner br"></span>
+                <div class="back-center">
+                  <div class="mark">✦</div>
+                  <div class="tip">未解锁</div>
+                </div>
+              </div>
+            </div>
           </div>
-          <span class="task-badge ${subCls}">${subLabel}</span>
-        </li>`;
-    });
+        </div>`;
+    }
 
-    scheduleHtml += '</ul></div>';
-  });
-
-  document.getElementById('schedule').innerHTML = scheduleHtml;
-}
-
-function toggleTask(dateKey, taskId, checkbox) {
-  const checks = loadChecks();
-  if (!checks[dateKey]) checks[dateKey] = {};
-  checks[dateKey][taskId] = checkbox.checked;
-  saveChecks(checks);
-
-  // Update visual
-  const item = document.getElementById('item-' + taskId);
-  if (item) {
-    if (checkbox.checked) item.classList.add('done');
-    else item.classList.remove('done');
+    return `
+      <div class="pony-card ${cls}">
+        <div class="pony-card-inner">
+          <div class="pony-card-front ${cls}" onclick="openCardDetail('${card.id}')">
+            <div class="card-topline">
+              <div>
+                <div class="card-name">${card.name}</div>
+                <div class="card-number">${seriesCode}</div>
+              </div>
+              <span class="rarity-badge ${cls}">${card.rarity}</span>
+            </div>
+            <div class="card-art">${buildPonySvg(card)}</div>
+            <div class="card-footer">
+              <div class="card-skill">${card.accent}<br>${card.skill}<div class="card-series">COLLECTOR EDITION</div></div>
+              <span class="card-count">x${count}</span>
+            </div>
+          </div>
+        </div>
+      </div>`;
   }
 
-  // Update progress bar
-  renderSchedule();
-}
+  function buildOwnedListItem(card, count, latestRecord) {
+    return `
+      <div class="owned-item">
+        <div class="owned-card-mini">${buildCardTile(card, count, 'owned')}</div>
+        <div>
+          <div class="owned-name">${card.name} · ${card.rarity}</div>
+          <div class="owned-meta">${card.accent}<br>最近获得：${latestRecord ? latestRecord.dateKey : '—'} · ${latestRecord ? latestRecord.source : '—'}</div>
+        </div>
+        <div class="owned-count">x${count}</div>
+      </div>`;
+  }
 
-// ============ INIT ============
-calYear = selectedDate.getFullYear();
-calMonth = selectedDate.getMonth();
-renderCalendar();
-renderSchedule();
+  function buildCatalogCard(card) {
+    return `
+      <div class="catalog-tile">
+        ${buildCardTile(card, 1, 'catalog')}
+        <div class="catalog-note">
+          <div class="name">${card.name} · ${card.rarity}</div>
+          <div class="desc">${card.description}<br>主题：${card.accent} · 能力：${card.skill}</div>
+        </div>
+      </div>`;
+  }
+
+  function renderCatalogPage() {
+    const board = document.getElementById('catalogBoard');
+    const groups = {
+      R: CARD_POOL.filter((card) => card.rarity === 'R'),
+      SR: CARD_POOL.filter((card) => card.rarity === 'SR'),
+      SSR: CARD_POOL.filter((card) => card.rarity === 'SSR')
+    };
+    board.innerHTML = ['R', 'SR', 'SSR'].map((rarity) => `
+      <section class="catalog-group">
+        <div class="catalog-group-head">
+          <h3><span class="rarity-pill ${rarityClass(rarity)}">${rarity}</span>${rarity} 卡正面预览</h3>
+          <div class="catalog-group-meta">共 ${groups[rarity].length} 张</div>
+        </div>
+        <div class="catalog-card-grid">${groups[rarity].map((card) => buildCatalogCard(card)).join('')}</div>
+      </section>
+    `).join('');
+  }
+
+  function renderStats() {
+    const totalStars = getTotalStars();
+    const owned = getOwnedTotalCount();
+    const checkinStreak = computeCheckinStreak();
+
+    document.getElementById('totalStars').textContent = totalStars;
+    document.getElementById('checkinStreak').textContent = checkinStreak;
+    document.getElementById('ownedCards').textContent = owned;
+    document.getElementById('starHint').textContent = totalStars >= 12 ? '星星可去卡片库解锁 SR。' : totalStars >= 3 ? '星星可去卡片库解锁 R。' : '继续攒星星。';
+    document.getElementById('checkinHint').textContent = checkinStreak > 0 ? `已连打 ${checkinStreak} 天。` : '今天开始记第 1 天。';
+    document.getElementById('ownedHint').textContent = owned > 0 ? `已解锁 ${getUnlockedKindsCount()} / ${CARD_POOL.length} 种，点这里直接进卡片库。` : '点这里直接进卡片库，也可以先看全部卡面。';
+  }
+
+  function renderWeekStrip() {
+    const strip = document.getElementById('weekStrip');
+    const start = getWeekStart(selectedDate);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    document.getElementById('weekRange').textContent = formatRange(start, end);
+    const checks = loadChecks();
+    const today = new Date();
+    let html = '';
+
+    for (let i = 0; i < 7; i += 1) {
+      const date = new Date(start);
+      date.setDate(start.getDate() + i);
+      const key = dateKey(date);
+      const progress = getDayProgress(date, checks);
+      const rewardCard = rewardState.streakRewards[key];
+      const weekName = ['一', '二', '三', '四', '五', '六', '日'][i];
+      let cls = 'day-pill';
+      if (sameDay(date, selectedDate)) cls += ' selected';
+      if (sameDay(date, today)) cls += ' today';
+      if (!isPlanDate(date)) cls += ' outside';
+      const note = !isPlanDate(date)
+        ? '计划外'
+        : isCoursePeriod(date)
+          ? '课程'
+          : isWeekend(date)
+            ? '周末'
+            : '常规';
+      const badgeRow = [];
+      if (progress.isFull) badgeRow.push('<span class="tiny-badge full">100%</span>');
+      if (rewardCard) {
+        const card = getCard(rewardCard.cardId);
+        badgeRow.push(`<span class="tiny-badge card-${rarityClass(card.rarity)}">${card.rarity}</span>`);
+      }
+      html += `
+        <div class="${cls}" onclick="selectDate(${date.getFullYear()}, ${date.getMonth()}, ${date.getDate()})">
+          <div class="day-name">周${weekName}</div>
+          <div class="day-date">${date.getDate()}</div>
+          <div class="day-note">${note}</div>
+          <div class="day-badge-row">${badgeRow.join('')}</div>
+          <div class="day-progress">${progress.done}/${progress.total}</div>
+        </div>`;
+    }
+    strip.innerHTML = html;
+  }
+
+  function renderProgress() {
+    const bundle = getTaskBundle(selectedDate);
+    const progress = getDayProgress(selectedDate);
+    document.getElementById('selectedDateLabel').textContent = formatFullDate(selectedDate);
+    const modeChip = document.getElementById('modeChip');
+    modeChip.className = `mode-chip ${bundle.mode}`;
+    modeChip.textContent = bundle.mode === 'regular'
+      ? '📖 常规计划'
+      : bundle.mode === 'course'
+        ? '📚 课程期间'
+        : bundle.mode === 'weekend'
+          ? '🌿 周末减量'
+          : '🎈 自由安排';
+    document.getElementById('progressValue').textContent = `${progress.pct}%`;
+    document.getElementById('progressCount').textContent = `${progress.done} / ${progress.total}`;
+    document.getElementById('progressFill').style.width = `${progress.pct}%`;
+
+    let summary = '先完成 1 项，把今天点亮。';
+    if (!isPlanDate(selectedDate)) summary = '这一天不在计划区间，可自由安排。';
+    else if (progress.done > 0 && progress.pct < 100) summary = `已完成 ${progress.done} 项，继续冲满进度。`;
+    else if (progress.pct === 100) summary = '今天已 100% 完成，奖励已结算。';
+    document.getElementById('progressSummary').textContent = summary;
+  }
+
+  function renderTasks() {
+    const bundle = getTaskBundle(selectedDate);
+    const area = document.getElementById('taskArea');
+    if (bundle.mode === 'off') {
+      area.innerHTML = '<div class="off-day">当前选择的日期不在暑假学习计划区间内。<br>可以切回 2026 年 7 月 - 8 月的计划日期继续打卡。</div>';
+      return;
+    }
+
+    const checks = loadChecks();
+    const progress = getDayProgress(selectedDate, checks);
+    const dayChecks = progress.dayChecks;
+    let html = '';
+
+    ['morning', 'afternoon', 'evening'].forEach((period) => {
+      const tasks = (bundle.tasks[period] || []).filter((task) => !task.tueThu || selectedDate.getDay() === 2 || selectedDate.getDay() === 4);
+      if (!tasks.length) return;
+      const doneCount = tasks.filter((task) => dayChecks[task.id]).length;
+      html += `
+        <div class="period-block">
+          <div class="period-head ${period}">
+            <span>${period === 'morning' ? '🌅 上午' : period === 'afternoon' ? '🌤 下午' : '🌙 晚上'}</span>
+            <span class="period-count">${doneCount}/${tasks.length}</span>
+          </div>
+          <ul class="task-list">`;
+      tasks.forEach((task) => {
+        const done = Boolean(dayChecks[task.id]);
+        html += `
+          <li class="task-item ${done ? 'done' : ''}" id="item-${task.id}">
+            <input class="task-check" type="checkbox" ${done ? 'checked' : ''} onchange="toggleTask('${dateKey(selectedDate)}', '${task.id}', this.checked)">
+            <div class="task-info">
+              <div class="task-name">${task.name}</div>
+              <div class="task-detail">${task.detail}</div>
+            </div>
+            <span class="task-badge badge-${task.subject}">${task.subject === 'cn' ? '语文' : task.subject === 'en' ? '英语' : '数学'}</span>
+          </li>`;
+      });
+      html += '</ul></div>';
+    });
+
+    area.innerHTML = html;
+  }
+
+  function buildRewardModal(items) {
+    document.getElementById('rewardList').innerHTML = items.map((item) => {
+      if (item.type === 'card') {
+        const card = getCard(item.cardId);
+        return `
+          <div class="reward-item card ${rarityClass(card.rarity)}">
+            <div class="reward-copy">
+              <h3>${item.title}</h3>
+              <p>${item.desc}</p>
+            </div>
+            <div class="reward-card-preview ${item.isUnlock ? 'unlock' : ''}">${buildCardTile(card, 1, 'reward')}</div>
+          </div>`;
+      }
+      return `
+        <div class="reward-item ${item.type}">
+          <div class="reward-emoji">${item.emoji}</div>
+          <div class="reward-copy">
+            <h3>${item.title}</h3>
+            <p>${item.desc}</p>
+          </div>
+        </div>`;
+    }).join('');
+
+    const rewardStage = document.getElementById('rewardStage');
+    const rewardStageBadge = document.getElementById('rewardStageBadge');
+    const rewardStageIcon = document.getElementById('rewardStageIcon');
+    const cardItem = items.find((item) => item.type === 'card');
+    const hasCard = Boolean(cardItem);
+    const hasStar = items.some((item) => item.type === 'star');
+    const hasQuote = items.some((item) => item.type === 'quote');
+    const hasUnlockStar = items.some((item) => item.isUnlock);
+    const hasFullStar = items.some((item) => item.type === 'star' && item.title === '满进度奖励');
+    const hasFirstStar = items.some((item) => item.type === 'star' && item.title === '首次完成奖励');
+    rewardStage.className = 'reward-stage';
+
+    if (hasCard) {
+      const card = getCard(cardItem.cardId);
+      const rarity = rarityClass(card.rarity);
+      rewardStage.classList.add('mode-card', `rarity-${rarity}`);
+      document.getElementById('rewardModalTitle').textContent = card.rarity === 'SSR' ? 'SSR 开卡成功' : '开卡成功';
+      rewardStageBadge.textContent = `${card.rarity} CARD DROP`;
+      rewardStageIcon.textContent = card.rarity === 'SSR' ? '👑' : card.rarity === 'SR' ? '💎' : '🃏';
+      document.getElementById('rewardStageTitle').textContent = card.rarity === 'SSR' ? '闪耀大奖登场' : '闪光掉卡时刻';
+      document.getElementById('rewardStageDesc').textContent = `新的 ${card.rarity} 卡 ${card.name} 已加入收藏册，快去卡片库看看吧。`;
+    } else if (hasStar) {
+      rewardStage.classList.add('mode-star');
+      if (hasUnlockStar) {
+        document.getElementById('rewardModalTitle').textContent = '解锁成功';
+        rewardStageBadge.textContent = 'STAR BONUS';
+        rewardStageIcon.textContent = '⭐';
+        document.getElementById('rewardStageTitle').textContent = '解锁完成，卡面翻开';
+        document.getElementById('rewardStageDesc').textContent = '这张卡已经正式加入收藏册，现在可以在卡片库里点开查看详情。';
+      } else if (hasFullStar) {
+        rewardStage.classList.add('mode-full-clear');
+        document.getElementById('rewardModalTitle').textContent = '今日 3 星拿满';
+        rewardStageBadge.textContent = 'FULL CLEAR';
+        rewardStageIcon.textContent = '🌈';
+        document.getElementById('rewardStageTitle').textContent = '今天已经全部完成';
+        document.getElementById('rewardStageDesc').textContent = '第一项先拿 1 星，满进度再补 2 星，今天的 3 颗星已经拿满。';
+      } else if (hasFirstStar) {
+        document.getElementById('rewardModalTitle').textContent = '今日第一颗星';
+        rewardStageBadge.textContent = 'FIRST STAR';
+        rewardStageIcon.textContent = '⭐';
+        document.getElementById('rewardStageTitle').textContent = '今天顺利开张';
+        document.getElementById('rewardStageDesc').textContent = '先拿下第一项，今天的第一颗星已经到账。';
+      } else {
+        document.getElementById('rewardModalTitle').textContent = items.length > 1 ? '奖励到账啦' : '星星到账';
+        rewardStageBadge.textContent = 'STAR BONUS';
+        rewardStageIcon.textContent = '⭐';
+        document.getElementById('rewardStageTitle').textContent = '星星奖励到账';
+        document.getElementById('rewardStageDesc').textContent = '继续保持这个节奏，今天的进度和奖励都会一起上涨。';
+      }
+    } else if (hasQuote) {
+      rewardStage.classList.add('mode-quote');
+      document.getElementById('rewardModalTitle').textContent = '完成一项啦';
+      rewardStageBadge.textContent = 'CHEER UP';
+      rewardStageIcon.textContent = '💬';
+      document.getElementById('rewardStageTitle').textContent = '今日打卡成功';
+      document.getElementById('rewardStageDesc').textContent = '先拿下一项也很棒，继续往前推今天就会越来越顺。';
+    } else {
+      rewardStageBadge.textContent = 'REWARD POP';
+      rewardStageIcon.textContent = '🎁';
+      document.getElementById('rewardModalTitle').textContent = '奖励到账啦';
+      document.getElementById('rewardStageTitle').textContent = '奖励到账啦';
+      document.getElementById('rewardStageDesc').textContent = '这次完成也记下来了，继续勾选就能推进今天的任务。';
+    }
+
+    openModal('rewardModal');
+  }
+
+  function attemptUnlockCard(cardId) {
+    const card = getCard(cardId);
+    if (!card) return;
+    const counts = getOwnedCardCounts();
+    if (counts[cardId]) {
+      openCardDetail(cardId);
+      return;
+    }
+    if (card.rarity === 'SSR') {
+      buildRewardModal([
+        { type: 'quote', emoji: '🔒', title: '无法解锁', desc: 'SSR 无法用星星解锁。' }
+      ]);
+      return;
+    }
+    const cost = card.rarity === 'SR' ? 12 : 3;
+    const currentStars = getTotalStars();
+    if (currentStars < cost) {
+      buildRewardModal([
+        { type: 'quote', emoji: '🪄', title: '星星不够', desc: `${card.rarity} 卡需要 ${cost} 个星星才能解锁。` }
+      ]);
+      return;
+    }
+    const ok = window.confirm(`确认消耗 ${cost} ⭐ 解锁 ${card.name} 吗？`);
+    if (!ok) return;
+
+    const now = new Date();
+    rewardState.exchanges.push({
+      rarity: card.rarity,
+      cost,
+      cardId,
+      dateKey: dateKey(now),
+      timestamp: now.toISOString(),
+      source: '卡片库星星解锁'
+    });
+    saveRewardState();
+    renderAll();
+    buildRewardModal([
+      { type: 'star', emoji: '⭐', title: '解锁成功', desc: `已消耗 ${cost} ⭐，${card.name} 现在已经翻到正面。`, isUnlock: true },
+      { type: 'card', cardId, title: `${card.rarity} 卡解锁成功`, desc: `${card.name} 已加入你的收藏册，可点击查看详情。`, isUnlock: true }
+    ]);
+  }
+
+  function toggleTask(dayKey, taskId, checked) {
+    const checks = loadChecks();
+    if (!checks[dayKey]) checks[dayKey] = {};
+    checks[dayKey][taskId] = checked;
+    saveChecks(checks);
+
+    const reward = ensureDailyReward(dayKey);
+    const beforeMap = JSON.stringify(rewardState.streakRewards || {});
+    const items = [];
+    let shouldShowModal = false;
+
+    if (checked) {
+      if (!reward.firstTaskAwarded) {
+        const quote = reward.firstQuote || pickRandom(DAILY_FIRST_QUOTES);
+        reward.firstTaskAwarded = true;
+        reward.firstQuote = quote;
+        items.push({ type: 'quote', emoji: '💬', title: '今日鼓励', desc: quote });
+        items.push({ type: 'star', emoji: '⭐', title: '首次完成奖励', desc: '拿到今天第一颗星：+1 ⭐' });
+        shouldShowModal = true;
+      }
+
+      const afterProgress = getDayProgress(dayKey, checks);
+      if (afterProgress.isFull && !reward.fullAwarded) {
+        reward.fullAwarded = true;
+        items.push({ type: 'star', emoji: '🌈', title: '满进度奖励', desc: '进度 100% 完成，补齐今天剩余 2 颗星星。' });
+        shouldShowModal = true;
+      }
+
+      rebuildStreakRewards();
+      const afterMap = JSON.stringify(rewardState.streakRewards || {});
+      if (beforeMap !== afterMap && rewardState.streakRewards[dayKey]) {
+        const rewardCard = rewardState.streakRewards[dayKey];
+        const card = getCard(rewardCard.cardId);
+        items.push({
+          type: 'card',
+          cardId: rewardCard.cardId,
+          title: `${rewardCard.milestone} 天连满掉卡 · ${card.rarity}`,
+          desc: `获得 ${card.name}。${rewardCard.milestone === 3 ? '3 天满进度奖励已发放。' : '7 天大奖已发放，并重新开始新一轮计数。'}`
+        });
+        shouldShowModal = true;
+      }
+
+      saveRewardState();
+      if (shouldShowModal && items.length) buildRewardModal(items);
+    } else {
+      rebuildStreakRewards();
+      saveRewardState();
+    }
+
+    renderAll();
+  }
+
+  function renderLibrarySummary() {
+    const counts = getOwnedCardCounts();
+    const rarityOwned = (rarity) => CARD_POOL.filter((card) => card.rarity === rarity && counts[card.id]).length;
+    const unlockedKinds = getUnlockedKindsCount();
+    const totalKinds = CARD_POOL.length;
+    const pct = totalKinds ? Math.round(unlockedKinds / totalKinds * 100) : 0;
+    const totalStars = getTotalStars();
+    const unlockableR = CARD_POOL.filter((card) => card.rarity === 'R' && !counts[card.id] && totalStars >= 3).length;
+    const unlockableSR = CARD_POOL.filter((card) => card.rarity === 'SR' && !counts[card.id] && totalStars >= 12).length;
+
+    document.getElementById('librarySummary').innerHTML = `
+      <div class="summary-pill"><div class="num">${getOwnedTotalCount()}</div><div class="label">累计拿到</div></div>
+      <div class="summary-pill"><div class="num">${rarityOwned('R')}/${CARD_POOL.filter((c) => c.rarity === 'R').length}</div><div class="label">R 收藏</div></div>
+      <div class="summary-pill"><div class="num">${rarityOwned('SR')}/${CARD_POOL.filter((c) => c.rarity === 'SR').length}</div><div class="label">SR 收藏</div></div>
+      <div class="summary-pill"><div class="num">${rarityOwned('SSR')}/${CARD_POOL.filter((c) => c.rarity === 'SSR').length}</div><div class="label">SSR 收藏</div></div>`;
+    document.getElementById('albumProgressText').textContent = `${unlockedKinds} / ${totalKinds} · ${pct}%`;
+    document.getElementById('albumProgressFill').style.width = `${pct}%`;
+    document.getElementById('libraryStars').textContent = `⭐ ${totalStars}`;
+    document.getElementById('libraryUnlockTip').textContent = totalStars >= 12
+      ? '你现在可以直接点未解锁 R / SR 卡片解锁；SSR 仍然不能直接解锁。'
+      : totalStars >= 3
+        ? '你现在可以点未解锁 R 卡片解锁；SR 还需要继续攒星星。'
+        : '点可解锁卡片可用星星解锁；SSR 仍然只能靠 7 天满进度掉落。';
+    document.getElementById('walletRBadge').textContent = `R 可解锁：${unlockableR} 张`;
+    document.getElementById('walletSRBadge').textContent = `SR 可解锁：${unlockableSR} 张`;
+    document.getElementById('walletSSRBadge').textContent = 'SSR：仅掉落';
+  }
+
+  function renderLibraryContent() {
+    const counts = getOwnedCardCounts();
+    const groups = {
+      R: CARD_POOL.filter((card) => card.rarity === 'R'),
+      SR: CARD_POOL.filter((card) => card.rarity === 'SR'),
+      SSR: CARD_POOL.filter((card) => card.rarity === 'SSR')
+    };
+    const container = document.getElementById('libraryContent');
+
+    function renderSection(rarity, cards) {
+      const ownedCards = cards.filter((card) => counts[card.id]);
+      const lockedCards = cards.filter((card) => !counts[card.id]);
+      const owned = ownedCards.length;
+      return `
+        <div class="library-section">
+          <div class="library-section-head">
+            <h3><span class="rarity-pill ${rarityClass(rarity)}">${rarity}</span>${rarity} 卡区</h3>
+            <div class="section-count">已解锁 ${owned}/${cards.length}</div>
+          </div>
+          <div class="album-sheet">
+            ${ownedCards.length ? `
+              <div class="section-count" style="margin:0 0 10px 6px;">已解锁卡面</div>
+              <div class="card-grid">${ownedCards.map((card) => buildCardTile(card, counts[card.id] || 0, 'library')).join('')}</div>
+            ` : ''}
+            ${lockedCards.length ? `
+              <div class="section-count" style="margin:${ownedCards.length ? '16px' : '0'} 0 10px 6px;">待解锁卡背</div>
+              <div class="card-grid">${lockedCards.map((card) => buildCardTile(card, 0, 'library')).join('')}</div>
+            ` : ''}
+          </div>
+        </div>`;
+    }
+
+    if (libraryFilter === 'ALL') {
+      container.innerHTML = renderSection('R', groups.R) + renderSection('SR', groups.SR) + renderSection('SSR', groups.SSR);
+      return;
+    }
+
+    container.innerHTML = renderSection(libraryFilter, groups[libraryFilter]);
+  }
+
+  function setLibraryFilter(filter, el) {
+    libraryFilter = filter;
+    document.querySelectorAll('.tab-btn').forEach((btn) => btn.classList.remove('active'));
+    if (el) el.classList.add('active');
+    renderLibraryContent();
+  }
+
+  function enterLibraryPage() {
+    renderLibrarySummary();
+    renderLibraryContent();
+    document.getElementById('catalogPage').classList.remove('show');
+    document.getElementById('libraryPage').classList.add('show');
+  }
+
+  function leaveLibraryPage() {
+    document.getElementById('libraryPage').classList.remove('show');
+  }
+
+  function openCardCatalogPage() {
+    renderCatalogPage();
+    document.getElementById('libraryPage').classList.remove('show');
+    document.getElementById('catalogPage').classList.add('show');
+  }
+
+  function closeCardCatalogPage() {
+    document.getElementById('catalogPage').classList.remove('show');
+    document.getElementById('libraryPage').classList.add('show');
+  }
+
+  function openCardDetail(cardId) {
+    const card = getCard(cardId);
+    if (!card) return;
+    const records = getAllCardRecords().filter((item) => item.cardId === cardId);
+    if (!records.length) return;
+    document.getElementById('detailTitle').textContent = `${card.name} · ${card.rarity}`;
+    document.getElementById('cardDetailBody').innerHTML = `
+      <div class="card-detail-grid">
+        <div>${buildCardTile(card, records.length, 'detail')}</div>
+        <div>
+          <div class="detail-box">
+            <div class="k">卡片说明</div>
+            <div class="v">${card.description}<br>主题：${card.accent}</div>
+          </div>
+          <div class="detail-box" style="margin-top:12px;">
+            <div class="k">我的获得记录</div>
+            <div class="v">一共获得 ${records.length} 张。</div>
+          </div>
+          <div class="detail-box" style="margin-top:12px;">
+            <div class="k">来源明细</div>
+            <ul>${records.map((record) => `<li>${record.dateKey} · ${record.source}${record.cost ? `（-${record.cost}⭐）` : ''}</li>`).join('')}</ul>
+          </div>
+        </div>
+      </div>
+      <div class="card-modal-actions">
+        <button class="card-action secondary" type="button" onclick="closeModal('cardDetailModal')">关闭</button>
+      </div>`;
+    openModal('cardDetailModal');
+  }
+
+  function openModal(id) {
+    document.getElementById(id).classList.add('show');
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('show');
+  }
+
+  function closeModalOnMask(event, id) {
+    if (event.target.id === id) closeModal(id);
+  }
+
+  function changeWeek(delta) {
+    const next = new Date(selectedDate);
+    next.setDate(next.getDate() + delta * 7);
+    selectedDate = next;
+    renderAll();
+  }
+
+  function selectDate(year, month, day) {
+    selectedDate = new Date(year, month, day);
+    renderAll();
+  }
+
+  function jumpToToday() {
+    selectedDate = new Date();
+    renderAll();
+  }
+
+  function renderAll() {
+    syncRewardFromChecks();
+    renderStats();
+    renderWeekStrip();
+    renderProgress();
+    renderTasks();
+    renderLibrarySummary();
+    renderLibraryContent();
+  }
+
+  syncRewardFromChecks();
+  renderAll();
 </script>
 </body>
 </html>
