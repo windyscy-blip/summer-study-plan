@@ -301,6 +301,7 @@ function buildPonySvg(card) {
     CARD_POOL: Object.freeze(CARD_POOL),
     CARD_ARTWORK: Object.freeze(CARD_ARTWORK),
     rarityClass,
-    buildPonySvg
+    buildPonySvg,
+    getCard
   });
 })();

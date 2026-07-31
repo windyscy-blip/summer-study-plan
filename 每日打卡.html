@@ -2446,7 +2446,7 @@
   </div>
 </div>
 
-<script src="cards-data.js"></script>
+<script src="cards-data.js?v=1.3.1"></script>
 <script>
   const CHECKS_KEY = 'summer_checks';
   const REWARD_KEY = 'summer_reward_center_v4';
@@ -2682,6 +2682,7 @@
       if (!/^\d{4}-\d{2}-\d{2}$/.test(dayKey) || !isPlainObject(entry)) return;
       const milestone = Number(entry.milestone);
       if ((milestone !== 3 && milestone !== 7) || typeof entry.cardId !== 'string' || !entry.cardId) return;
+      if (!getCard(entry.cardId)) return;
       normalized[dayKey] = { milestone, cardId: entry.cardId };
     });
     return normalized;
@@ -2971,7 +2972,7 @@
   if (!window.CARD_DATA) {
     throw new Error('卡片数据模块加载失败：请确认 cards-data.js 已部署。');
   }
-  const { CARD_POOL, CARD_ARTWORK, rarityClass, buildPonySvg } = window.CARD_DATA;
+  const { CARD_POOL, CARD_ARTWORK, rarityClass, buildPonySvg, getCard } = window.CARD_DATA;
 
   function buildCardTile(card, count, context = 'library') {
     const owned = count > 0;

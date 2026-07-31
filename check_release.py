@@ -41,10 +41,15 @@ def main():
             ok = fail(f"{card_id} 的资源不存在：{relative}") and ok
 
     for name, page in ((MAIN.name, main_page), (PREVIEW.name, preview_page)):
-        if '<script src="cards-data.js"></script>' not in page:
+        if not re.search(r'<script\s+src="cards-data\.js(?:\?[^\"]*)?"></script>', page):
             ok = fail(f"{name} 未引入 cards-data.js") and ok
-        if 'const { CARD_POOL, CARD_ARTWORK, rarityClass, buildPonySvg } = window.CARD_DATA;' not in page:
+        if 'const {' not in page or '} = window.CARD_DATA;' not in page:
             ok = fail(f"{name} 未解构共享卡片数据") and ok
+        destructure = page.split('= window.CARD_DATA;')[0]
+        for needed in ('CARD_POOL', 'CARD_ARTWORK', 'rarityClass', 'buildPonySvg', 'getCard'):
+            locally_defined = (f'function {needed}(' in page) or (f'const {needed} =' in page) or (f'let {needed} =' in page)
+            if needed not in destructure and not locally_defined:
+                ok = fail(f"{name} 缺少共享/本地定义：{needed}") and ok
         for marker in ('const CARD_POOL =', 'const CARD_ARTWORK =', 'function rarityClass(', 'function buildPonySvg('):
             if marker in page:
                 ok = fail(f"{name} 仍保留重复定义：{marker}") and ok
