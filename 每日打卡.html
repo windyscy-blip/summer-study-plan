@@ -2570,6 +2570,13 @@
     ]
   };
 
+  // 卡片共享数据必须先就绪：奖励账本加载时会校验历史掉卡的 cardId。
+  // 若在 loadRewardState() 之后才解构 getCard，会触发暂时性死区错误，导致账本被当作空数据并在刷新时重新随机抽卡。
+  if (!window.CARD_DATA) {
+    throw new Error('卡片数据模块加载失败：请确认 cards-data.js 已部署。');
+  }
+  const { CARD_POOL, CARD_ARTWORK, rarityClass, buildPonySvg, getCard } = window.CARD_DATA;
+
   let selectedDate = new Date();
   let libraryFilter = 'ALL';
   let rewardState = loadRewardState();
@@ -3008,11 +3015,6 @@
     if (roll < 70) return drawCardByRarity('SR');
     return drawCardByRarity('SSR');
   }
-
-  if (!window.CARD_DATA) {
-    throw new Error('卡片数据模块加载失败：请确认 cards-data.js 已部署。');
-  }
-  const { CARD_POOL, CARD_ARTWORK, rarityClass, buildPonySvg, getCard } = window.CARD_DATA;
 
   function buildCardTile(card, count, context = 'library') {
     const owned = count > 0;
