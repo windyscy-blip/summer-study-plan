@@ -2714,8 +2714,25 @@
   function mergeRewardStates(legacyState, currentState) {
     const legacy = migrateRewardState(legacyState);
     const current = migrateRewardState(currentState);
+    const hasCurrentState = Object.keys(current.dailyRewards).length || Object.keys(current.streakRewards).length || current.exchanges.length;
+    if (!hasCurrentState) return legacy;
+    // v4 是当前唯一权威账本。v3 只补回 v4 完全缺失的历史掉卡，绝不覆盖新版本里的解锁、星星消耗或同日掉卡结果。
+    const missingLegacyDrops = Object.fromEntries(
+      Object.entries(legacy.streakRewards).filter(([dayKey]) => !current.streakRewards[dayKey])
+    );
+    return {
+      schemaVersion: DATA_SCHEMA_VERSION,
+      dailyRewards: current.dailyRewards,
+      streakRewards: { ...missingLegacyDrops, ...current.streakRewards },
+      exchanges: current.exchanges
+    };
+  }
+
+  function mergeCurrentRewardStates(storedState, incomingState) {
+    const stored = migrateRewardState(storedState);
+    const incoming = migrateRewardState(incomingState);
     const exchangeKeys = new Set();
-    const exchanges = [...legacy.exchanges, ...current.exchanges].filter((item) => {
+    const exchanges = [...stored.exchanges, ...incoming.exchanges].filter((item) => {
       const key = `${item.cardId}|${item.timestamp}|${item.dateKey}|${item.cost}`;
       if (exchangeKeys.has(key)) return false;
       exchangeKeys.add(key);
@@ -2723,9 +2740,8 @@
     });
     return {
       schemaVersion: DATA_SCHEMA_VERSION,
-      dailyRewards: { ...legacy.dailyRewards, ...current.dailyRewards },
-      // 已发放的连胜掉卡属于收藏记录，课表或任务规则变化后也不能被重算逻辑删除。
-      streakRewards: { ...legacy.streakRewards, ...current.streakRewards },
+      dailyRewards: { ...stored.dailyRewards, ...incoming.dailyRewards },
+      streakRewards: { ...stored.streakRewards, ...incoming.streakRewards },
       exchanges
     };
   }
@@ -2779,7 +2795,10 @@
 
   function saveRewardState() {
     try {
-      rewardState = migrateRewardState(rewardState);
+      const storedText = localStorage.getItem(REWARD_KEY);
+      const storedState = storedText ? JSON.parse(storedText) : {};
+      // 保存前合并当前已落盘账本，避免重新渲染或页面切换覆盖刚完成的星星解锁/掉卡。
+      rewardState = mergeCurrentRewardStates(storedState, rewardState);
       localStorage.setItem(REWARD_KEY, JSON.stringify(rewardState));
       markSchemaVersion();
     } catch (e) {
