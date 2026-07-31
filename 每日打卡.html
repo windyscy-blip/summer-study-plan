@@ -2711,6 +2711,25 @@
     };
   }
 
+  function mergeRewardStates(legacyState, currentState) {
+    const legacy = migrateRewardState(legacyState);
+    const current = migrateRewardState(currentState);
+    const exchangeKeys = new Set();
+    const exchanges = [...legacy.exchanges, ...current.exchanges].filter((item) => {
+      const key = `${item.cardId}|${item.timestamp}|${item.dateKey}|${item.cost}`;
+      if (exchangeKeys.has(key)) return false;
+      exchangeKeys.add(key);
+      return true;
+    });
+    return {
+      schemaVersion: DATA_SCHEMA_VERSION,
+      dailyRewards: { ...legacy.dailyRewards, ...current.dailyRewards },
+      // 已发放的连胜掉卡属于收藏记录，课表或任务规则变化后也不能被重算逻辑删除。
+      streakRewards: { ...legacy.streakRewards, ...current.streakRewards },
+      exchanges
+    };
+  }
+
   function markSchemaVersion() {
     try {
       localStorage.setItem(DATA_SCHEMA_KEY, String(DATA_SCHEMA_VERSION));
@@ -2742,12 +2761,13 @@
 
   function loadRewardState() {
     try {
-      const current = localStorage.getItem(REWARD_KEY);
-      const legacy = localStorage.getItem(LEGACY_REWARD_KEY);
-      const rawText = current || legacy || '{}';
-      const raw = JSON.parse(rawText);
-      const migrated = migrateRewardState(raw);
-      if (!current || JSON.stringify(raw) !== JSON.stringify(migrated)) {
+      const currentText = localStorage.getItem(REWARD_KEY);
+      const legacyText = localStorage.getItem(LEGACY_REWARD_KEY);
+      const currentRaw = currentText ? JSON.parse(currentText) : {};
+      const legacyRaw = legacyText ? JSON.parse(legacyText) : {};
+      // v3 与 v4 同时存在时合并收藏记录，避免升级过程把较早的掉卡覆盖掉。
+      const migrated = mergeRewardStates(legacyRaw, currentRaw);
+      if (!currentText || JSON.stringify(currentRaw) !== JSON.stringify(migrated)) {
         localStorage.setItem(REWARD_KEY, JSON.stringify(migrated));
       }
       markSchemaVersion();
@@ -2881,7 +2901,8 @@
       }
     });
 
-    rewardState.streakRewards = fresh;
+    // 奖励发放完成后即成为收藏记录：仅新增本轮达成的掉卡，绝不因后续课表/任务调整删除旧卡。
+    rewardState.streakRewards = { ...oldMap, ...fresh };
   }
 
   function syncRewardFromChecks() {
@@ -3163,8 +3184,9 @@
     const dayChecks = progress.dayChecks;
     let html = '';
 
+    const visibleTasks = getVisibleTasks(selectedDate);
     ['morning', 'afternoon', 'evening'].forEach((period) => {
-      const tasks = (bundle.tasks[period] || []).filter((task) => !task.tueThu || selectedDate.getDay() === 2 || selectedDate.getDay() === 4);
+      const tasks = visibleTasks.filter((task) => task.period === period);
       if (!tasks.length) return;
       const doneCount = tasks.filter((task) => dayChecks[task.id]).length;
       html += `
