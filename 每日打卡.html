@@ -2220,6 +2220,22 @@
     .album-sheet { padding-bottom: 16px; }
     .card-number, .card-series { font-size: 8px; }
   }
+  .redeem-toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:12px; }
+  .redeem-status { font-size:12px; color:var(--sub); }
+  .redeem-status.success { color:#247647; }
+  .redeem-status.pending { color:#b36c16; }
+  .redeem-btn { border:1px solid var(--border); background:#fff; color:var(--text); border-radius:10px; padding:7px 10px; font:inherit; font-size:12px; cursor:pointer; }
+  .redeem-btn.primary { background:#6c63ff; border-color:#6c63ff; color:#fff; }
+  .redeem-dialog-copy { padding:16px; border-radius:18px; background:linear-gradient(135deg, #fff1f8, #f1edff 54%, #e9f8ff); box-shadow:inset 0 0 0 1px rgba(170,145,243,.12); }
+  .redeem-dialog-icon { width:54px; height:54px; display:grid; place-items:center; border-radius:18px; background:rgba(255,255,255,.76); font-size:27px; box-shadow:0 10px 20px rgba(136,98,210,.12); }
+  .redeem-dialog-copy h3 { margin:12px 0 4px; font-size:20px; font-weight:900; }
+  .redeem-dialog-copy p { margin:0; color:var(--sub); font-size:13px; line-height:1.7; }
+  .redeem-dialog-form { display:flex; gap:10px; margin-top:16px; }
+  .redeem-dialog-form input { flex:1; min-width:0; padding:12px 14px; border:1px solid var(--border); border-radius:13px; background:#fff; color:var(--text); font:inherit; font-size:16px; letter-spacing:3px; text-align:center; }
+  .redeem-dialog-form input:focus { outline:none; border-color:#9388ff; box-shadow:0 0 0 3px rgba(147,136,255,.16); }
+  .redeem-dialog-hint { min-height:20px; margin:10px 2px 0; color:var(--sub); font-size:12px; line-height:1.5; }
+  .redeem-dialog-hint.pending { color:#b36c16; }
+  @media (max-width: 480px) { .redeem-dialog-form { flex-direction:column; } .redeem-dialog-form .redeem-btn { min-height:44px; } }
 </style>
 </head>
 <body>
@@ -2228,6 +2244,10 @@
     <div class="topbar-copy">
       <div class="mini-badge">🦄 彩虹小马学习乐园 · V1.3</div>
       <h1>暑假学习 · 彩虹打卡乐园</h1>
+      <div class="redeem-toolbar">
+        <span class="redeem-status" id="redeemStatus">输入兑换码，领取惊喜奖励</span>
+        <button class="redeem-btn primary" type="button" id="redeemOpenBtn" onclick="openRedeemModal()">输入兑换码</button>
+      </div>
     </div>
     <div class="topbar-art">
       <svg class="pony-mini" viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -2326,6 +2346,27 @@
     </div>
     <div class="task-body" id="taskArea"></div>
   </section>
+</div>
+
+<div class="modal" id="redeemModal" onclick="closeModalOnMask(event, 'redeemModal')">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-title">兑换惊喜奖励</div>
+      <button class="modal-close" type="button" onclick="closeRedeemModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="redeem-dialog-copy">
+        <div class="redeem-dialog-icon">🎁</div>
+        <h3>输入兑换码</h3>
+        <p>兑换成功后，即可领取一次专属惊喜奖励。</p>
+        <div class="redeem-dialog-form">
+          <input id="redeemCode" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6 位兑换码" onkeydown="if(event.key === 'Enter') redeemCode()">
+          <button class="redeem-btn primary" type="button" id="redeemSubmitBtn" onclick="redeemCode()">立即兑换</button>
+        </div>
+        <p class="redeem-dialog-hint" id="redeemDialogHint">请输入 6 位兑换码。</p>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="modal" id="rewardModal" onclick="closeModalOnMask(event, 'rewardModal')">
@@ -2447,12 +2488,15 @@
 </div>
 
 <script src="cards-data.js?v=1.3.1"></script>
+<script src="cloud-config.js?v=1.1.0"></script>
+<script src="cloud-sync.js?v=1.1.0"></script>
 <script>
   const CHECKS_KEY = 'summer_checks';
   const REWARD_KEY = 'summer_reward_center_v4';
   const LEGACY_REWARD_KEY = 'summer_reward_center_v3';
   const DATA_SCHEMA_VERSION = 1;
   const DATA_SCHEMA_KEY = 'summer_data_schema_version';
+  const CLOUD_PENDING_KEY = 'summer_cloud_pending_dates_v1';
   const PLAN_START = new Date(2026, 6, 1);
   const COURSE_START = new Date(2026, 7, 3);
   const COURSE_END = new Date(2026, 7, 15);
@@ -2651,7 +2695,8 @@
       schemaVersion: DATA_SCHEMA_VERSION,
       dailyRewards: {},
       streakRewards: {},
-      exchanges: []
+      exchanges: [],
+      redeemReward: null
     };
   }
 
@@ -2708,13 +2753,29 @@
       }));
   }
 
+  function normalizeRedeemReward(raw) {
+    if (!isPlainObject(raw) || raw.claimed !== true) return null;
+    const type = ['card', 'stars'].includes(raw.type) ? raw.type : '';
+    if (!type) return null;
+    if (type === 'card' && !getCard(raw.cardId)) return null;
+    return {
+      claimed: true,
+      type,
+      cardId: type === 'card' ? raw.cardId : '',
+      rarity: ['R', 'SR', 'SSR'].includes(raw.rarity) ? raw.rarity : '',
+      stars: type === 'stars' ? (Number(raw.stars) === 3 ? 3 : 1) : 0,
+      timestamp: typeof raw.timestamp === 'string' ? raw.timestamp : new Date().toISOString()
+    };
+  }
+
   function migrateRewardState(raw) {
     const source = isPlainObject(raw) ? raw : {};
     return {
       schemaVersion: DATA_SCHEMA_VERSION,
       dailyRewards: normalizeDailyRewards(source.dailyRewards),
       streakRewards: normalizeStreakRewards(source.streakRewards),
-      exchanges: normalizeExchanges(source.exchanges)
+      exchanges: normalizeExchanges(source.exchanges),
+      redeemReward: normalizeRedeemReward(source.redeemReward)
     };
   }
 
@@ -2731,7 +2792,8 @@
       schemaVersion: DATA_SCHEMA_VERSION,
       dailyRewards: current.dailyRewards,
       streakRewards: { ...missingLegacyDrops, ...current.streakRewards },
-      exchanges: current.exchanges
+      exchanges: current.exchanges,
+      redeemReward: current.redeemReward
     };
   }
 
@@ -2749,7 +2811,8 @@
       schemaVersion: DATA_SCHEMA_VERSION,
       dailyRewards: { ...stored.dailyRewards, ...incoming.dailyRewards },
       streakRewards: { ...stored.streakRewards, ...incoming.streakRewards },
-      exchanges
+      exchanges,
+      redeemReward: incoming.redeemReward || stored.redeemReward
     };
   }
 
@@ -2779,6 +2842,176 @@
       markSchemaVersion();
     } catch (e) {
       // 写入失败时不阻断勾选和页面渲染。
+    }
+  }
+
+  function loadPendingCloudDates() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(CLOUD_PENDING_KEY) || '[]');
+      return Array.isArray(raw) ? raw.filter((key) => /^\d{4}-\d{2}-\d{2}$/.test(key)) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function markCloudPending(dayKey) {
+    try {
+      const pending = new Set(loadPendingCloudDates());
+      pending.add(dayKey);
+      localStorage.setItem(CLOUD_PENDING_KEY, JSON.stringify([...pending]));
+    } catch (e) {
+      // 本地写入失败时，下一次手动同步仍会同步全部已有打卡。
+    }
+  }
+
+  function clearCloudPending(dayKeys) {
+    try {
+      const resolved = new Set(dayKeys || []);
+      localStorage.setItem(CLOUD_PENDING_KEY, JSON.stringify(loadPendingCloudDates().filter((key) => !resolved.has(key))));
+    } catch (e) {
+      // 不影响已完成的云端写入。
+    }
+  }
+
+  function cloudSnapshot(dayKey, checksMap) {
+    const checks = checksMap || loadChecks();
+    const progress = getDayProgress(dayKey, checks);
+    return {
+      checkDate: dayKey,
+      checks: {
+        values: progress.dayChecks,
+        tasks: progress.tasks.map((task) => ({
+          id: task.id,
+          name: task.name,
+          detail: task.detail,
+          period: task.period,
+          subject: task.subject
+        }))
+      },
+      doneCount: progress.done,
+      totalCount: progress.total,
+      isFull: progress.isFull
+    };
+  }
+
+  function setRedeemStatus(text, tone) {
+    const status = document.getElementById('redeemStatus');
+    if (!status) return;
+    status.textContent = text;
+    status.className = `redeem-status${tone ? ` ${tone}` : ''}`;
+  }
+
+  function setRedeemDialogHint(text, tone) {
+    const hint = document.getElementById('redeemDialogHint');
+    if (!hint) return;
+    hint.textContent = text;
+    hint.className = `redeem-dialog-hint${tone ? ` ${tone}` : ''}`;
+  }
+
+  function openRedeemModal() {
+    setRedeemDialogHint('请输入 6 位兑换码。');
+    openModal('redeemModal');
+    setTimeout(() => document.getElementById('redeemCode')?.focus(), 40);
+  }
+
+  function closeRedeemModal() {
+    closeModal('redeemModal');
+  }
+
+  function updateRedeemUi(redeemed) {
+    document.getElementById('redeemOpenBtn').hidden = redeemed;
+    if (redeemed) closeRedeemModal();
+    setRedeemStatus(redeemed ? '兑换成功 · 奖励已到账' : '输入兑换码，领取惊喜奖励', redeemed ? 'success' : '');
+  }
+
+  function drawRedeemReward() {
+    const roll = Math.random() * 100;
+    if (roll < 60) return { type: 'card', rarity: 'R' };
+    if (roll < 80) return { type: 'card', rarity: 'SR' };
+    if (roll < 85) return { type: 'card', rarity: 'SSR' };
+    return roll < 95 ? { type: 'stars', stars: 3 } : { type: 'stars', stars: 1 };
+  }
+
+  function applyRedeemReward(reward) {
+    if (rewardState.redeemReward) return rewardState.redeemReward;
+    const result = reward?.type ? { ...reward } : drawRedeemReward();
+    // 云端已确定卡牌时必须直接采用，避免前端刷新/重试时把同一次奖励换成另一张卡。
+    if (result.type === 'card' && !result.cardId) {
+      result.cardId = drawCardByRarity(result.rarity);
+    }
+    rewardState.redeemReward = { claimed: true, ...result, timestamp: new Date().toISOString() };
+    saveRewardState();
+    return rewardState.redeemReward;
+  }
+
+  function showRedeemReward(reward) {
+    const item = reward.type === 'card'
+      ? { type: 'card', cardId: reward.cardId, title: `${reward.rarity} 惊喜卡`, desc: `兑换成功！${getCard(reward.cardId).name} 已加入你的收藏册。` }
+      : { type: 'star', emoji: '⭐', title: `${reward.stars} 颗星星到账`, desc: `兑换成功！获得 ${reward.stars} 颗星星。` };
+    buildRewardModal([item]);
+  }
+
+  async function redeemCode() {
+    const code = document.getElementById('redeemCode').value.trim();
+    if (!/^\d{6}$/.test(code)) {
+      setRedeemDialogHint('请输入正确的 6 位兑换码。', 'pending');
+      return;
+    }
+    const submit = document.getElementById('redeemSubmitBtn');
+    if (submit) {
+      submit.disabled = true;
+      submit.textContent = '兑换中…';
+    }
+    setRedeemDialogHint('正在打开惊喜奖励…');
+    try {
+      const localReward = drawRedeemReward();
+      if (localReward.type === 'card') localReward.cardId = drawCardByRarity(localReward.rarity);
+      const result = await window.SummerCloud.redeemCode(code, localReward);
+      const reward = applyRedeemReward(result.reward || localReward);
+      updateRedeemUi(true);
+      renderAll();
+      showRedeemReward(reward);
+      await syncAllCheckins();
+    } catch (e) {
+      setRedeemDialogHint(e.message || '兑换失败，请再试一次。', 'pending');
+      if (submit) {
+        submit.disabled = false;
+        submit.textContent = '立即兑换';
+      }
+    }
+  }
+
+  async function syncAllCheckins() {
+    try {
+      const status = await window.SummerCloud.getDeviceStatus();
+      if (!status.redeemed) return;
+      const checks = loadChecks();
+      const dates = [...new Set([...Object.keys(checks), ...loadPendingCloudDates()])]
+        .filter((key) => isPlanDate(parseDateKey(key)))
+        .sort();
+      const synced = [];
+      for (const key of dates) {
+        await window.SummerCloud.syncCheckin(cloudSnapshot(key, checks));
+        synced.push(key);
+      }
+      clearCloudPending(synced);
+    } catch (e) {
+      // 兑换后的静默同步失败不影响本地打卡与奖励。
+    }
+  }
+
+  async function initCloudSync() {
+    if (!window.SummerCloud || !window.SummerCloud.isConfigured()) return;
+    try {
+      const status = await window.SummerCloud.getDeviceStatus();
+      updateRedeemUi(status.redeemed);
+      if (status.redeemed) {
+        const reward = applyRedeemReward(status.reward);
+        if (reward && !rewardState.redeemReward) saveRewardState();
+        if (loadPendingCloudDates().length || Object.keys(loadChecks()).length) await syncAllCheckins();
+      }
+    } catch (e) {
+      setRedeemStatus('输入兑换码，领取惊喜奖励');
     }
   }
 
@@ -2960,6 +3193,7 @@
       if (entry.firstTaskAwarded) earned += 1;
       if (entry.fullAwarded) earned += 2;
     });
+    if (rewardState.redeemReward?.type === 'stars') earned += rewardState.redeemReward.stars;
     const spent = rewardState.exchanges.reduce((sum, item) => sum + Number(item.cost || 0), 0);
     return earned - spent;
   }
@@ -2982,7 +3216,16 @@
       milestone: 0,
       timestamp: item.timestamp || `${item.dateKey}T12:00:00`
     }));
-    return [...streakRecords, ...exchangeRecords].sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1));
+    const redeemRecords = rewardState.redeemReward?.type === 'card' ? [{
+      type: 'redeem',
+      source: '兑换惊喜奖励',
+      dateKey: dateKey(new Date(rewardState.redeemReward.timestamp)),
+      cardId: rewardState.redeemReward.cardId,
+      cost: 0,
+      milestone: 0,
+      timestamp: rewardState.redeemReward.timestamp
+    }] : [];
+    return [...streakRecords, ...exchangeRecords, ...redeemRecords].sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1));
   }
 
   function getOwnedCardCounts() {
@@ -3387,6 +3630,7 @@
     if (!checks[dayKey]) checks[dayKey] = {};
     checks[dayKey][taskId] = checked;
     saveChecks(checks);
+    markCloudPending(dayKey);
 
     const reward = ensureDailyReward(dayKey);
     const beforeMap = JSON.stringify(rewardState.streakRewards || {});
@@ -3432,6 +3676,7 @@
     }
 
     renderAll();
+    syncAllCheckins();
   }
 
   function renderLibrarySummary() {
@@ -3633,6 +3878,7 @@
 
   syncRewardFromChecks();
   renderAll();
+  initCloudSync();
 </script>
 </body>
 </html>
