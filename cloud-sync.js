@@ -74,6 +74,11 @@
     return invoke('redeem', { code, reward });
   }
 
+  async function redeemRewardCode(code) {
+    await ensureAnonymousSession();
+    return invoke('redeem_reward_code', { code });
+  }
+
   async function syncCheckin(snapshot) {
     await ensureAnonymousSession();
     return invoke('sync', { snapshot });
@@ -90,6 +95,18 @@
 
   async function getRedeemCodeStatus() {
     return invoke('get_code_status');
+  }
+
+  async function createRewardCode(rewardKind, message, validDays) {
+    return invoke('create_reward_code', { rewardKind, message, validDays });
+  }
+
+  async function listRewardCodes() {
+    return invoke('list_reward_codes');
+  }
+
+  async function revokeRewardCode(id) {
+    return invoke('revoke_reward_code', { id });
   }
 
   async function fetchCheckins(days) {
@@ -115,10 +132,14 @@
     signIn,
     signOut,
     redeemCode,
+    redeemRewardCode,
     syncCheckin,
     getDeviceStatus,
     setRedeemCode,
     getRedeemCodeStatus,
+    createRewardCode,
+    listRewardCodes,
+    revokeRewardCode,
     fetchCheckins
   });
 })();
