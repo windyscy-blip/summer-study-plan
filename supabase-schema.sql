@@ -20,9 +20,13 @@ create table if not exists public.family_groups (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null unique references auth.users(id) on delete cascade,
   code_hash text not null unique,
+  code_value text,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  constraint family_groups_code_value_valid check (code_value is null or code_value ~ '^\d{6}$')
 );
+-- 兼容已创建的表：家长页需要显示当前兑换码，因此仅在服务端保存一份可读取值。
+alter table public.family_groups add column if not exists code_value text;
 
 create table if not exists public.family_devices (
   id bigint generated always as identity primary key,

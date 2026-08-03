@@ -53,8 +53,8 @@ Deno.serve(async (request) => {
     const codeHash = await hashCode(code);
     const { data: oldFamily } = await admin.from('family_groups').select('id').eq('owner_id', userId).maybeSingle();
     const query = oldFamily
-      ? admin.from('family_groups').update({ code_hash: codeHash, updated_at: new Date().toISOString() }).eq('id', oldFamily.id)
-      : admin.from('family_groups').insert({ owner_id: userId, code_hash: codeHash });
+      ? admin.from('family_groups').update({ code_hash: codeHash, code_value: code, updated_at: new Date().toISOString() }).eq('id', oldFamily.id)
+      : admin.from('family_groups').insert({ owner_id: userId, code_hash: codeHash, code_value: code });
     const { error } = await query;
     if (error) return reply({ error: error.message }, 400);
     return reply({ ok: true, code });
@@ -62,9 +62,9 @@ Deno.serve(async (request) => {
 
   if (action === 'get_code_status') {
     if (authData.user.is_anonymous) return reply({ error: '请先登录家长账号。' }, 403);
-    const { data, error } = await admin.from('family_groups').select('updated_at').eq('owner_id', userId).maybeSingle();
+    const { data, error } = await admin.from('family_groups').select('code_value, updated_at').eq('owner_id', userId).maybeSingle();
     if (error) return reply({ error: error.message }, 400);
-    return reply({ ok: true, configured: Boolean(data), updatedAt: data?.updated_at || null });
+    return reply({ ok: true, configured: Boolean(data), code: data?.code_value || null, updatedAt: data?.updated_at || null });
   }
 
   if (action === 'redeem') {
