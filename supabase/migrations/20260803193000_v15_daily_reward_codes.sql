@@ -66,7 +66,7 @@ create table if not exists public.reward_codes (
   used_count integer not null default 0 check (used_count >= 0 and used_count <= max_uses),
   revoked_at timestamptz,
   created_at timestamptz not null default now(),
-  constraint reward_codes_code_value_valid check (code_value ~ '^\\d{6}$'),
+  constraint reward_codes_code_value_valid check (code_value ~ '^\d{6}$'),
   constraint reward_codes_reward_valid check (
     (reward->>'type' = 'stars' and (reward->>'stars')::integer in (1, 3, 5))
     or (reward->>'type' = 'card' and reward->>'rarity' in ('R', 'SR') and length(coalesce(reward->>'cardId', '')) > 0)

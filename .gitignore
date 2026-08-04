@@ -1,0 +1,9 @@
+# 仅供本地测试的 Supabase 配置，禁止提交
+cloud-config.local.js
+
+# 端到端测试可包含本地测试账号，禁止提交
+test_e2e.js
+
+# 自动化测试产物
+artifacts/
+test-results/

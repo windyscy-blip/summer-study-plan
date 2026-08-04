@@ -36,10 +36,18 @@ test('云函数在服务端固化日常奖励并支持幂等领取', () => {
   assert.doesNotMatch(edge, /redeem_reward_code[\s\S]{0,500}body\.reward/);
 });
 
-test('前端云端接口覆盖创建、查询、撤销、领取', () => {
+test('接入码诊断仅由测试环境开关启用，且不返回完整哈希', () => {
+  assert.doesNotMatch(edge, /TEST_DIAGNOSTICS|ivuerdnzjkwpkgjdzsia|codeHashPrefix|diagnostic:/);
+});
+
+test('前端云端接口覆盖创建、查询、撤销、领取，并解析非 2xx 业务错误', () => {
   for (const method of ['redeemRewardCode', 'createRewardCode', 'listRewardCodes', 'revokeRewardCode']) assert.match(cloud, new RegExp(`async function ${method}`));
   assert.match(cloud, /redeem_reward_code/);
   assert.match(cloud, /create_reward_code/);
+  assert.match(cloud, /error\.context/);
+  assert.match(cloud, /response\.clone\(\)\.json\(\)/);
+  assert.match(cloud, /const SDK_URLS = \[/);
+  assert.match(cloud, /https:\/\/unpkg\.com\/@supabase\/supabase-js@2/);
 });
 
 test('小朋友端奖励账本按 claimId 去重并兼容 v4', () => {
@@ -51,9 +59,42 @@ test('小朋友端奖励账本按 claimId 去重并兼容 v4', () => {
   assert.doesNotMatch(childPage, /rewardState\.redeemReward/);
 });
 
+test('未接入设备领取日常奖励码时提示先完成设备接入', () => {
+  assert.match(childPage, /let status;/);
+  assert.match(childPage, /!status\?\.redeemed && message\.includes\('兑换码不正确'\)/);
+  assert.match(childPage, /这台设备还没有接入家庭/);
+});
+
 test('家长端可发放、查看和撤销日常奖励', () => {
   for (const id of ['rewardKind', 'rewardDays', 'rewardMessage', 'rewardList']) assert.match(parentPage, new RegExp(`id="${id}"`));
   for (const fn of ['createRewardCode', 'loadRewardCodes', 'revokeRewardCode']) assert.match(parentPage, new RegExp(`async function ${fn}`));
 });
 
-if (!process.exitCode) console.log('V1.5 日常奖励码静态单元测试全部通过。');
+test('数据库包含 V1.6 按日期课表覆盖表', () => {
+  assert.match(schema, /create table if not exists public\.schedule_overrides/i);
+  assert.match(schema, /schedule_overrides_family_date_unique unique \(family_id, schedule_date\)/i);
+  assert.match(schema, /schedule_overrides_tasks_is_array/i);
+});
+
+test('云函数校验课表任务并限制为家长写入', () => {
+  for (const action of ['get_schedule', 'save_schedule_overrides', 'remove_schedule_overrides']) assert.match(edge, new RegExp(`action === '${action}'`));
+  assert.match(edge, /function normalizeScheduleTasks/);
+  assert.match(edge, /if \(!isParent\) return reply\(\{ error: '请先登录家长账号。' \}, 403\);/);
+  assert.match(edge, /schedule_overrides/);
+});
+
+test('云端接口与小朋友端支持课表同步和缓存回退', () => {
+  for (const method of ['getSchedule', 'saveScheduleOverrides', 'removeScheduleOverrides']) assert.match(cloud, new RegExp(`async function ${method}`));
+  assert.match(childPage, /SCHEDULE_CACHE_KEY/);
+  assert.match(childPage, /refreshScheduleOverrides/);
+  assert.match(childPage, /getScheduleOverride\(dateKey\(date\)\)/);
+  assert.match(childPage, /scheduleVersion/);
+});
+
+test('家长端支持单日编辑、多日复制、恢复默认和预览', () => {
+  for (const id of ['scheduleDate', 'scheduleBoard', 'schedulePreview']) assert.match(parentPage, new RegExp(`id="${id}"`));
+  for (const fn of ['saveSchedule', 'copyScheduleToDates', 'restoreDefaultSchedule', 'previewSchedule']) assert.match(parentPage, new RegExp(`function ${fn}`));
+  assert.match(parentPage, /已同步历史不能调整/);
+});
+
+if (!process.exitCode) console.log('V1.6 日常奖励码与课表调整静态单元测试全部通过。');

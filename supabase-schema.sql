@@ -66,7 +66,7 @@ create table if not exists public.reward_codes (
   used_count integer not null default 0 check (used_count >= 0 and used_count <= max_uses),
   revoked_at timestamptz,
   created_at timestamptz not null default now(),
-  constraint reward_codes_code_value_valid check (code_value ~ '^\\d{6}$'),
+  constraint reward_codes_code_value_valid check (code_value ~ '^\d{6}$'),
   constraint reward_codes_reward_valid check (
     (reward->>'type' = 'stars' and (reward->>'stars')::integer in (1, 3, 5))
     or (reward->>'type' = 'card' and reward->>'rarity' in ('R', 'SR') and length(coalesce(reward->>'cardId', '')) > 0)
@@ -147,3 +147,21 @@ end;
 $$;
 
 revoke all on function public.claim_reward_code(text, uuid) from public;
+
+-- V1.6：家长端按日期调整课表。历史打卡仍以 daily_checkins.checks.tasks 快照为准。
+create table if not exists public.schedule_overrides (
+  id uuid primary key default gen_random_uuid(),
+  family_id uuid not null references public.family_groups(id) on delete cascade,
+  schedule_date date not null,
+  tasks jsonb not null default '[]'::jsonb,
+  version integer not null default 1 check (version >= 1),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint schedule_overrides_family_date_unique unique (family_id, schedule_date),
+  constraint schedule_overrides_tasks_is_array check (jsonb_typeof(tasks) = 'array'),
+  constraint schedule_overrides_task_limit check (jsonb_array_length(tasks) between 0 and 24)
+);
+
+create index if not exists schedule_overrides_family_date_idx on public.schedule_overrides (family_id, schedule_date);
+alter table public.schedule_overrides enable row level security;
+revoke all on table public.schedule_overrides from anon, authenticated;

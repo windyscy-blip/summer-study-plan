@@ -1,6 +1,9 @@
 (function () {
   const config = window.SUMMER_CLOUD_CONFIG;
-  const SDK_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+  const SDK_URLS = [
+    'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
+    'https://unpkg.com/@supabase/supabase-js@2'
+  ];
   let client = null;
   let initPromise = null;
 
@@ -12,12 +15,20 @@
     if (window.supabase && window.supabase.createClient) return Promise.resolve();
     if (initPromise) return initPromise;
     initPromise = new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = SDK_URL;
-      script.async = true;
-      script.onload = resolve;
-      script.onerror = () => reject(new Error('服务加载失败，请检查网络后重试。'));
-      document.head.appendChild(script);
+      let index = 0;
+      const tryNext = () => {
+        if (index >= SDK_URLS.length) {
+          reject(new Error('服务加载失败，请检查网络后重试。'));
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = SDK_URLS[index++];
+        script.async = true;
+        script.onload = () => window.supabase?.createClient ? resolve() : tryNext();
+        script.onerror = () => { script.remove(); tryNext(); };
+        document.head.appendChild(script);
+      };
+      tryNext();
     });
     return initPromise;
   }
@@ -61,10 +72,33 @@
     if (error) throw error;
   }
 
+  async function sendPasswordRecovery(email, redirectTo) {
+    const api = await getClient();
+    const { error } = await api.auth.resetPasswordForEmail(email, { redirectTo });
+    if (error) throw error;
+  }
+
+  async function updatePassword(password) {
+    const api = await getClient();
+    const { error } = await api.auth.updateUser({ password });
+    if (error) throw error;
+  }
+
   async function invoke(action, payload) {
     const api = await getClient();
     const { data, error } = await api.functions.invoke(config.functionName, { body: { action, ...(payload || {}) } });
-    if (error) throw new Error(data?.error || error.message || '请求失败。');
+    if (error) {
+      let message = data?.error || '';
+      // Supabase 在非 2xx 时把函数响应放在 error.context 中；读取后优先展示服务端业务错误。
+      const response = error.context;
+      if (!message && response && typeof response.clone === 'function') {
+        try {
+          const details = await response.clone().json();
+          message = details?.error || details?.message || '';
+        } catch (_) {}
+      }
+      throw new Error(message || error.message || '请求失败。');
+    }
     if (data && data.error) throw new Error(data.error);
     return data || {};
   }
@@ -109,6 +143,20 @@
     return invoke('revoke_reward_code', { id });
   }
 
+  async function getSchedule(from, to) {
+    const session = await getSession();
+    if (!session) await ensureAnonymousSession();
+    return invoke('get_schedule', { from, to });
+  }
+
+  async function saveScheduleOverrides(overrides) {
+    return invoke('save_schedule_overrides', { overrides });
+  }
+
+  async function removeScheduleOverrides(dates) {
+    return invoke('remove_schedule_overrides', { dates });
+  }
+
   async function fetchCheckins(days) {
     const api = await getClient();
     const session = await getSession();
@@ -131,6 +179,8 @@
     ensureAnonymousSession,
     signIn,
     signOut,
+    sendPasswordRecovery,
+    updatePassword,
     redeemCode,
     redeemRewardCode,
     syncCheckin,
@@ -140,6 +190,9 @@
     createRewardCode,
     listRewardCodes,
     revokeRewardCode,
+    getSchedule,
+    saveScheduleOverrides,
+    removeScheduleOverrides,
     fetchCheckins
   });
 })();

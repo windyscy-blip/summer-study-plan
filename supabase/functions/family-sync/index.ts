@@ -45,6 +45,30 @@ function expiryFor(days: unknown) {
   expires.setDate(expires.getDate() + safeDays - 1);
   return expires.toISOString();
 }
+const PERIODS = ['morning', 'afternoon', 'evening'] as const;
+const SUBJECTS = ['cn', 'en', 'ma', 'other'] as const;
+type ScheduleTask = { id: string; name: string; detail: string; period: typeof PERIODS[number]; subject: typeof SUBJECTS[number] };
+function validScheduleDate(value: unknown) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ''));
+}
+function normalizeScheduleTasks(value: unknown): ScheduleTask[] | null {
+  if (!Array.isArray(value) || value.length > 24) return null;
+  const ids = new Set<string>();
+  const tasks: ScheduleTask[] = [];
+  for (const raw of value) {
+    if (!raw || typeof raw !== 'object') return null;
+    const item = raw as Record<string, unknown>;
+    const id = String(item.id || '').trim();
+    const name = String(item.name || '').trim();
+    const detail = String(item.detail || '').trim();
+    const period = String(item.period || '');
+    const subject = String(item.subject || 'other');
+    if (!/^[a-zA-Z0-9_-]{2,64}$/.test(id) || !name || name.length > 40 || detail.length > 120 || !PERIODS.includes(period as typeof PERIODS[number]) || !SUBJECTS.includes(subject as typeof SUBJECTS[number]) || ids.has(id)) return null;
+    ids.add(id);
+    tasks.push({ id, name, detail, period: period as ScheduleTask['period'], subject: subject as ScheduleTask['subject'] });
+  }
+  return tasks;
+}
 
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
@@ -125,6 +149,47 @@ Deno.serve(async (request) => {
     const messages: Record<string, string> = { not_linked: '请先使用设备兑换码领取第一份惊喜。', not_found: '兑换码不正确，请再试一次。', not_eligible: '这份奖励不是给这台设备的。', revoked: '这份奖励暂时无法领取。', expired: '这份惊喜已经过期啦。', used_up: '这份奖励已经领完啦。' };
     if (messages[result]) return reply({ error: messages[result] }, 400);
     return reply({ ok: true, alreadyClaimed: result === 'already_claimed', claimId: data.claim_id, reward: data.reward, message: data.message || '', claimedAt: data.claimed_at });
+  }
+
+  if (action === 'get_schedule') {
+    const { data: device } = await admin.from('family_devices').select('family_id').eq('device_user_id', userId).maybeSingle();
+    const familyId = isParent
+      ? (await admin.from('family_groups').select('id').eq('owner_id', userId).maybeSingle()).data?.id
+      : device?.family_id;
+    if (!familyId) return reply({ error: isParent ? '请先设置设备兑换码。' : '请先使用设备兑换码领取第一份惊喜。' }, 403);
+    const from = validScheduleDate(body.from) ? String(body.from) : new Date().toISOString().slice(0, 10);
+    const to = validScheduleDate(body.to) ? String(body.to) : from;
+    const { data, error } = await admin.from('schedule_overrides').select('schedule_date, tasks, version, updated_at').eq('family_id', familyId).gte('schedule_date', from).lte('schedule_date', to).order('schedule_date');
+    if (error) return reply({ error: error.message }, 400);
+    return reply({ ok: true, overrides: data || [] });
+  }
+  if (action === 'save_schedule_overrides') {
+    if (!isParent) return reply({ error: '请先登录家长账号。' }, 403);
+    const { data: family } = await admin.from('family_groups').select('id').eq('owner_id', userId).maybeSingle();
+    if (!family) return reply({ error: '请先设置设备兑换码。' }, 400);
+    const items = Array.isArray(body.overrides) ? body.overrides : [];
+    if (!items.length || items.length > 31) return reply({ error: '请选择 1 至 31 个日期。' }, 400);
+    const rows = [];
+    for (const raw of items) {
+      const item = raw as Record<string, unknown>;
+      const scheduleDate = String(item?.scheduleDate || '');
+      const tasks = normalizeScheduleTasks(item?.tasks);
+      if (!validScheduleDate(scheduleDate) || !tasks) return reply({ error: '课表内容格式不正确。' }, 400);
+      rows.push({ family_id: family.id, schedule_date: scheduleDate, tasks, updated_at: new Date().toISOString() });
+    }
+    if (new Set(rows.map((row) => row.schedule_date)).size !== rows.length) return reply({ error: '日期不能重复。' }, 400);
+    const { error } = await admin.from('schedule_overrides').upsert(rows, { onConflict: 'family_id,schedule_date' });
+    if (error) return reply({ error: error.message }, 400);
+    return reply({ ok: true, savedDates: rows.map((row) => row.schedule_date) });
+  }
+  if (action === 'remove_schedule_overrides') {
+    if (!isParent) return reply({ error: '请先登录家长账号。' }, 403);
+    const { data: family } = await admin.from('family_groups').select('id').eq('owner_id', userId).maybeSingle();
+    const dates = Array.isArray(body.dates) ? body.dates.map((item) => String(item)) : [];
+    if (!family || !dates.length || dates.length > 31 || dates.some((item) => !validScheduleDate(item))) return reply({ error: '日期格式不正确。' }, 400);
+    const { error } = await admin.from('schedule_overrides').delete().eq('family_id', family.id).in('schedule_date', dates);
+    if (error) return reply({ error: error.message }, 400);
+    return reply({ ok: true });
   }
 
   if (action === 'redeem') {
